@@ -117,7 +117,7 @@ id: UUID PRIMARY KEY
 user_id: UUID FOREIGN KEY REFERENCES users(id)
 movie_id: UUID FOREIGN KEY REFERENCES movies(id)
 created_at: TIMESTAMP DEFAULT NOW()
-```
+```GET,POST,DELETE
 
 ### Reviews jadval
 
