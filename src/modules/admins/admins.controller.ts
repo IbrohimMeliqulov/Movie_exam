@@ -1,85 +1,43 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { AdminsService } from './admins.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
-import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from './dto/create.user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { Role } from '@prisma/client';
 import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { CreateAdminDto, UpdateAdminDto } from './dto/create.admin.dto';
+
 
 @ApiBearerAuth()
-@Controller('users')
-export class UsersController {
-    constructor(private readonly userService: UsersService) { }
-
-
+@Controller('admins')
+export class AdminsController {
+    constructor(private readonly adminService: AdminsService) { }
 
 
     @ApiOperation({
-        summary: `${Role.Superadmin},${Role.Admin}`
+        summary: `${Role.Superadmin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Superadmin, Role.Admin)
+    @Roles(Role.Superadmin)
     @Get()
-    getAllUsers() {
-        return this.userService.getAllUsers()
+    getAllAdmins() {
+        return this.adminService.getAllAdmins()
     }
 
 
-
     @ApiOperation({
-        summary: `${Role.Superadmin},${Role.Admin}`
+        summary: `${Role.Superadmin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Superadmin, Role.Admin)
+    @Roles(Role.Superadmin)
     @Get("single/:id")
-    getSingleUser(
+    getSingleAdmin(
         @Param("id", ParseIntPipe) id: number
     ) {
-        return this.userService.getSingleUser(id)
+        return this.adminService.getSingleAdmin(id)
     }
-
-
-
-    @ApiConsumes("multipart/form-data")
-    @ApiBody({
-        schema: {
-            type: "object",
-            properties: {
-                username: { type: "string" },
-                email: { type: "string" },
-                password: { type: "string" },
-                avatar: { type: "string", format: 'binary' },
-            }
-        }
-    })
-    @UseInterceptors(FileInterceptor("avatar", {
-        storage: diskStorage({
-            destination: "./src/uploads/avatars",
-            filename: (req, file, cb) => {
-                const filename = new Date() + "." + file.mimetype.split("/")[1]
-                cb(null, filename)
-            }
-        }),
-        fileFilter: (req, file, cb) => {
-            const existFile = ["png", "jpg", "jpeg"]
-
-            if (!existFile.includes(file.mimetype.split("/")[1])) {
-                cb(new UnsupportedMediaTypeException(), false)
-            }
-            cb(null, true)
-        }
-    }))
-    @Post()
-    createUser(
-        @Body() payload: CreateUserDto,
-        @UploadedFile() file?: Express.Multer.File
-    ) {
-        return this.userService.createUser(payload, file?.filename)
-    }
-
 
 
 
@@ -113,30 +71,76 @@ export class UsersController {
         }
     }))
     @ApiOperation({
-        summary: `${Role.User}`
+        summary: `${Role.Superadmin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.User)
-    @Put(":id")
-    updateUser(
-        @Param("id", ParseIntPipe) id: number,
-        @Body() payload: UpdateUserDto,
+    @Roles(Role.Superadmin)
+    @Post()
+    createAdmin(
+        @Body() payload: CreateAdminDto,
         @UploadedFile() file: Express.Multer.File
     ) {
-        return this.userService.updateUser(id, payload, file?.filename)
+        return this.adminService.createAdmin(payload, file?.filename)
+    }
+
+
+
+
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: "object",
+            properties: {
+                username: { type: "string" },
+                email: { type: "string" },
+                password: { type: "string" },
+                avatar: { type: "string", format: 'binary' },
+            }
+        }
+    })
+    @UseInterceptors(FileInterceptor("avatar", {
+        storage: diskStorage({
+            destination: "./src/uploads/avatars",
+            filename: (req, file, cb) => {
+                const filename = new Date() + "." + file.mimetype.split("/")[1]
+                cb(null, filename)
+            }
+        }),
+        fileFilter: (req, file, cb) => {
+            const existFile = ["png", "jpg", "jpeg"]
+
+            if (!existFile.includes(file.mimetype.split("/")[1])) {
+                cb(new UnsupportedMediaTypeException(), false)
+            }
+            cb(null, true)
+        }
+    }))
+    @ApiOperation({
+        summary: `${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin)
+    @Put(":id")
+    updateAdmin(
+        @Param("id", ParseIntPipe) id: number,
+        @Body() payload: UpdateAdminDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.adminService.updateAdmin(id, payload, file?.filename)
     }
 
 
 
     @ApiOperation({
-        summary: `${Role.User}`
+        summary: `${Role.Superadmin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.User)
+    @Roles(Role.Superadmin)
     @Delete(":id")
     deleteAdmin(@Param("id", ParseIntPipe) id: number) {
-        return this.userService.deleteUser(id)
+        return this.adminService.deleteAdmin(id)
     }
+
 
 
 

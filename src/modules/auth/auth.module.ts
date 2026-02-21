@@ -1,9 +1,13 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { PrismaModule } from 'src/core/database/prisma.module';
 
+
+@Global()
 @Module({
+  imports: [PrismaModule],
   controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

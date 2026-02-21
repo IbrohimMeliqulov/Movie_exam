@@ -53,7 +53,7 @@ model Users {
   email             String               @unique
   password          String
   role              Role                 @default(User)
-  avatar_url        String
+  avatar_url        String?
   created_at        DateTime             @default(now())
   updated_at        DateTime             @default(now())
   profiles          Profiles[]
