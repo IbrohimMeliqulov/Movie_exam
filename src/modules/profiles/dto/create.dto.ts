@@ -1,44 +1,43 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { Transform } from "class-transformer"
-import { IsOptional, IsString, IsStrongPassword } from "class-validator"
+import { Transform, Type } from "class-transformer"
+import { IsNumber, IsOptional, IsPhoneNumber, IsString } from "class-validator"
 
-export class CreateUserDto {
-    @ApiProperty()
-    @IsString()
-    username: string
-
+export class CreateProfileDto {
 
     @ApiProperty()
     @IsString()
-    email: string
+    full_name: string
 
 
     @ApiProperty()
-    @IsStrongPassword()
-    password: string
+    @IsPhoneNumber("UZ")
+    phone: string
+
+    @ApiProperty()
+    @IsString()
+    country: string
 }
 
 
 
-
-export class UpdateUserDto {
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
-    @IsString()
-    username?: string
-
+export class UpdateProfileDto {
 
     @ApiPropertyOptional()
     @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
     @IsString()
-    email?: string
+    full_name?: string
 
 
     @ApiPropertyOptional()
     @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
-    @IsStrongPassword()
-    password?: string
+    @IsPhoneNumber("UZ")
+    phone?: string
+
+    @ApiPropertyOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
+    @IsOptional()
+    @IsString()
+    country?: string
 }
