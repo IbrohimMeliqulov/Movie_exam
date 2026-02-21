@@ -12,19 +12,14 @@ export class AuthService {
 
     async login(payload: LoginDto, req: Request) {
         const existUser = await this.prisma.users.findFirst({
-            where: {
-                OR: [
-                    { username: payload.username },
-                    { password: payload.password }
-                ]
-            }
+            where: { username: payload.username }
         })
 
         if (!existUser) throw new BadRequestException("Username or password wrong")
 
-        // const comparePass = await checkPassword(payload.password, existUser.password)
+        const comparePass = await checkPassword(payload.password, existUser.password)
 
-        // if (!comparePass) throw new BadRequestException("You inserted password wrong")
+        if (!comparePass) throw new BadRequestException("Username or password wrong")
         const accessToken = await this.jwtService.sign({ id: existUser.id, email: existUser.email, role: existUser.role })
         return {
             success: true,

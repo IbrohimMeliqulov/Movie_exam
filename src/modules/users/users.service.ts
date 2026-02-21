@@ -43,6 +43,12 @@ export class UsersService {
         const users = await this.prisma.users.findMany({
             where: {
                 role: Role.User
+            },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                avatar_url: true
             }
         })
 
@@ -59,6 +65,11 @@ export class UsersService {
             where: {
                 id,
                 role: Role.Admin
+            },
+            select: {
+                username: true,
+                email: true,
+                avatar_url: true
             }
         })
         if (!existUser) throw new NotFoundException("Not found ")
@@ -74,7 +85,10 @@ export class UsersService {
     async updateUser(id: number, payload: UpdateUserDto, filename: string) {
         const { password, ...rest } = payload
         const existUser = await this.prisma.users.findUnique({
-            where: { id }
+            where: {
+                id,
+                role: Role.User
+            }
         })
         if (!existUser) throw new NotFoundException("User not found with this id")
 

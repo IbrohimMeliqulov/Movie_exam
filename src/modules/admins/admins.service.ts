@@ -69,7 +69,10 @@ export class AdminsService {
     async updateAdmin(id: number, payload: UpdateAdminDto, filename: string) {
         const { password, ...rest } = payload
         const existAdmin = await this.prisma.users.findUnique({
-            where: { id }
+            where: {
+                id,
+                role: Role.Admin
+            }
         })
         if (!existAdmin) throw new NotFoundException("Admin not foun with this id")
 

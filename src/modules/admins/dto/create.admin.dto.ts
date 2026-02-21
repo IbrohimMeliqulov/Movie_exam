@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger"
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { IsOptional, IsString, IsStrongPassword } from "class-validator"
 
 export class CreateAdminDto {
@@ -12,10 +12,6 @@ export class CreateAdminDto {
     email: string
 
 
-    // @ApiProperty({ type: "string", format: "binary", required: false })
-    // @IsOptional()
-    // avatar?: any
-
 
     @ApiProperty()
     @IsStrongPassword()
@@ -26,22 +22,21 @@ export class CreateAdminDto {
 
 
 export class UpdateAdminDto {
-    @ApiProperty()
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsString()
     username: string
 
 
-    @ApiProperty()
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsString()
     email: string
 
 
-    // @ApiProperty({ type: "string", format: "binary", required: false })
-    // @IsOptional()
-    // avatar_url?: any
 
-
-    @ApiProperty()
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsStrongPassword()
     password: string
 }
