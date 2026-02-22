@@ -1,7 +1,7 @@
-import { ApiProperty } from "@nestjs/swagger"
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { Decimal } from "@prisma/client/runtime/client"
 import { Type } from "class-transformer"
-import { IsNumber, IsString, Max, Min } from "class-validator"
+import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator"
 
 export class MoviesDto {
     @ApiProperty()
@@ -26,7 +26,7 @@ export class MoviesDto {
     duration_minutes: number
 
 
-
+    @ApiProperty()
     @IsNumber({ maxDecimalPlaces: 1 })
     @Min(0)
     @Max(10)
@@ -39,4 +39,50 @@ export class MoviesDto {
     @IsNumber()
     @Type(() => Number)
     created_by: number
+}
+
+
+
+export class UpdateMoviesDto {
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    title?: string
+
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    description?: string
+
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    release_year?: number
+
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    duration_minutes?: number
+
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber({ maxDecimalPlaces: 1 })
+    @Min(0)
+    @Max(10)
+    @Type(() => Number)
+    rating?: Decimal
+
+
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    created_by?: number
 }
