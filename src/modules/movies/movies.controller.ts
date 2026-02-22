@@ -1,13 +1,44 @@
-import { Body, Controller, Post, UnsupportedMediaTypeException, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { MoviesService } from './movies.service';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { MoviesDto } from './dto/create.dto';
+import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
+import { Role } from '@prisma/client';
+import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
 
+
+@ApiBearerAuth()
 @Controller('movies')
 export class MoviesController {
     constructor(private readonly moviesService: MoviesService) { }
+
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin},${Role.User}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin, Role.User)
+    @Get()
+    getAllMovies() {
+        return this.moviesService.getAllMovies()
+    }
+
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin},${Role.User}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin, Role.User)
+    @Get(":id")
+    getSingleMovie(
+        @Param("id", ParseIntPipe) id: number,
+        @Req() req: Request
+    ) {
+        return this.moviesService.getOneMovie(id, req["user"])
+    }
 
 
     @ApiConsumes("multipart/form-data")
@@ -41,6 +72,11 @@ export class MoviesController {
             cb(null, true)
         }
     }))
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
     @Post()
     createMovie(
         @Body() payload: MoviesDto,
@@ -48,4 +84,35 @@ export class MoviesController {
     ) {
         return this.moviesService.createMovie(payload, file?.filename)
     }
+
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Put(":id")
+    updateMovie(
+        @Body() payload: UpdateMoviesDto,
+        @Param("id", ParseIntPipe) id: number,
+        @Req() req: Request
+    ) {
+        return this.moviesService.updateMovie(id, payload, req['user'])
+    }
+
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Delete(":id")
+    deleteMovie(
+        @Param("id", ParseIntPipe) id: number,
+        @Req() req: Request
+    ) {
+        return this.moviesService.deleteMovie(id, req["user"])
+    }
+
+
 }
