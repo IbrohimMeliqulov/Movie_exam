@@ -1,7 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { MoviesDto } from './dto/create.dto';
+import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
+import { slugify } from 'src/core/utils/slugify';
+import { Decimal } from '@prisma/client/runtime/client';
 
 @Injectable()
 export class MoviesService {
@@ -33,7 +35,31 @@ export class MoviesService {
     }
 
 
-    async createMovie(payload: MoviesDto) {
+    async createMovie(payload: MoviesDto, filename?: string) {
+        const existUser = await this.prisma.users.findUnique({
+            where: {
+                id: payload.created_by
+            }
+        })
+        if (!existUser) throw new NotFoundException("User not found")
+
+        const slugTitle = slugify(payload.title)
+        await this.prisma.movies.create({
+            data: {
+                ...payload,
+                slug: slugTitle,
+                rating: new Decimal(payload.rating),
+                poster_url: filename ?? ""
+            }
+        })
+
+        return {
+            success: true,
+            message: "Movie created"
+        }
+    }
+
+    async updateMovie(id: number, payload: UpdateMoviesDto, current_user: { id: number, role: Role }) {
 
     }
 }

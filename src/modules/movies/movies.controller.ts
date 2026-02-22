@@ -24,7 +24,7 @@ export class MoviesController {
             }
         }
     })
-    @UseInterceptors(FileInterceptor("avatar", {
+    @UseInterceptors(FileInterceptor("poster", {
         storage: diskStorage({
             destination: "./src/uploads/posters",
             filename: (req, file, cb) => {
@@ -45,5 +45,7 @@ export class MoviesController {
     createMovie(
         @Body() payload: MoviesDto,
         @UploadedFile() file?: Express.Multer.File
-    ) { }
+    ) {
+        return this.moviesService.createMovie(payload, file?.filename)
+    }
 }
