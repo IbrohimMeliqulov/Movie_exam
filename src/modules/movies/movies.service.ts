@@ -59,7 +59,7 @@ export class MoviesService {
         }
     }
 
-    async updateMovie(id: number, payload: UpdateMoviesDto, current_user: { id: number, role: Role }) {
+    async updateMovie(id: number, payload: UpdateMoviesDto, current_user: { id: number, role: Role }, filename?: string) {
         const existMovie = await this.prisma.movies.findUnique({
             where: { id },
             select: {
@@ -78,7 +78,10 @@ export class MoviesService {
 
         await this.prisma.movies.update({
             where: { id },
-            data: payload
+            data: {
+                ...payload,
+                ...(filename && { poster_url: filename })
+            }
         })
 
         return {
