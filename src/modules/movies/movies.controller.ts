@@ -86,6 +86,39 @@ export class MoviesController {
     }
 
 
+
+
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: "object",
+            properties: {
+                title: { type: "string" },
+                description: { type: "string" },
+                release_year: { type: "number" },
+                duration_minutes: { type: "number" },
+                rating: { type: "number" },
+                poster: { type: "string", format: 'binary' },
+            }
+        }
+    })
+    @UseInterceptors(FileInterceptor("poster", {
+        storage: diskStorage({
+            destination: "./src/uploads/posters",
+            filename: (req, file, cb) => {
+                const filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
+                cb(null, filename)
+            }
+        }),
+        fileFilter: (req, file, cb) => {
+            const existFile = ["png", "jpg", "jpeg"]
+
+            if (!existFile.includes(file.mimetype.split("/")[1])) {
+                cb(new UnsupportedMediaTypeException(), false)
+            }
+            cb(null, true)
+        }
+    }))
     @ApiOperation({
         summary: `${Role.Superadmin},${Role.Admin}`
     })
@@ -95,9 +128,10 @@ export class MoviesController {
     updateMovie(
         @Body() payload: UpdateMoviesDto,
         @Param("id", ParseIntPipe) id: number,
-        @Req() req: Request
+        @Req() req: Request,
+        @UploadedFile() file: Express.Multer.File
     ) {
-        return this.moviesService.updateMovie(id, payload, req['user'])
+        return this.moviesService.updateMovie(id, payload, req['user'], file?.filename)
     }
 
 
@@ -113,6 +147,4 @@ export class MoviesController {
     ) {
         return this.moviesService.deleteMovie(id, req["user"])
     }
-
-
 }
