@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/create.user.dto';
-import { Role } from '@prisma/client';
+import { Role, Status } from '@prisma/client';
 import { hashPassword } from 'src/core/utils/bcrypt';
 
 @Injectable()
@@ -29,7 +29,6 @@ export class UsersService {
                 role: Role.User
             }
         })
-
         return {
             success: true,
             message: "You registered"

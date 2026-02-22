@@ -79,7 +79,7 @@ model Subscription_plans {
   name              String
   price             Decimal
   duration_days     Int
-  features          Json[]
+  features          Json
   isActive          Boolean              @default(true)
   created_at        DateTime             @default(now())
   userSubscriptions User_subscriptions[]
@@ -104,7 +104,7 @@ model Payments {
   user_subscription_id Int
   amount               Decimal
   payment_method       Payment_method
-  payment_details      Json[]
+  payment_details      Json
   status               Payment_status     @default(completed)
   created_at           DateTime           @default(now())
   user_subscriptions   User_subscriptions @relation(fields: [user_subscription_id], references: [id])

@@ -14,6 +14,21 @@ export class ProfilesController {
     constructor(private readonly profileService: ProfilesService) { }
 
     @ApiOperation({
+        summary: `${Role.Superadmin},`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Superadmin)
+    @Get()
+    getAllProfiles() {
+        return this.profileService.getAllProfiles()
+    }
+
+
+
+
+
+
+    @ApiOperation({
         summary: `${Role.User}`
     })
     @UseGuards(AuthGuard, RoleGuard)
