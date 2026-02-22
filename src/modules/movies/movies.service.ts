@@ -60,6 +60,57 @@ export class MoviesService {
     }
 
     async updateMovie(id: number, payload: UpdateMoviesDto, current_user: { id: number, role: Role }) {
+        const existMovie = await this.prisma.movies.findUnique({
+            where: { id },
+            select: {
+                creaters: {
+                    select: {
+                        id: true,
+                        role: true
+                    }
+                }
+            }
+        })
+        if (!existMovie) throw new NotFoundException("Movie not found")
+        if (existMovie?.creaters.id !== current_user.id && existMovie.creaters.role !== current_user.role) {
+            throw new ForbiddenException("You don't have a permission")
+        }
 
+        await this.prisma.movies.update({
+            where: { id },
+            data: payload
+        })
+
+        return {
+            success: true,
+            message: "Movie updated"
+        }
+    }
+
+
+    async deleteMovie(id: number, current_user: { id: number, role: Role }) {
+        const existMovie = await this.prisma.movies.findUnique({
+            where: { id },
+            select: {
+                creaters: {
+                    select: {
+                        id: true,
+                        role: true
+                    }
+                }
+            }
+        })
+        if (!existMovie) throw new NotFoundException("Movie not found")
+
+        if (existMovie.creaters.id !== current_user.id && existMovie.creaters.role !== current_user.role) {
+            throw new ForbiddenException("You don't have a permission to delete")
+        }
+        await this.prisma.movies.delete({
+            where: { id }
+        })
+        return {
+            success: true,
+            message: "Movie deleted"
+        }
     }
 }
