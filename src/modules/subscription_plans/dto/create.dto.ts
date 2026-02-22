@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { Transform, Type } from "class-transformer"
-import { IsArray, IsNumber, IsOptional, IsPositive, IsString } from "class-validator"
+import { IsArray, IsNumber, IsOptional, IsString, Max, Min } from "class-validator"
 
 export class SubscriptionPlansDto {
     @ApiProperty()
@@ -9,7 +9,8 @@ export class SubscriptionPlansDto {
 
     @ApiProperty()
     @IsNumber({ maxDecimalPlaces: 2 })
-    @IsPositive()
+    @Min(0)
+    @Max(10)
     @Type(() => Number)
     price: number
 
@@ -32,28 +33,27 @@ export class UpdateSubscriptionPlansDto {
     @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
     @IsString()
-    name: string
+    name?: string
 
     @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsNumber({ maxDecimalPlaces: 2 })
+    @Transform(({ value }) => value === '' || value === null ? undefined : value)
     @IsOptional()
-    @IsPositive()
+    @IsNumber({ maxDecimalPlaces: 2 })
+    @Min(0)
+    @Max(10)
     @Type(() => Number)
-    price: number
-
+    price?: number
 
     @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
+    @Transform(({ value }) => value === '' || value === null ? undefined : value)
     @IsOptional()
     @IsNumber()
-    duration_days: number
-
+    duration_days?: number
 
     @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
+    @Transform(({ value }) => !value || value.length === 0 ? undefined : value)
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
-    features: string[]
+    features?: string[]
 }

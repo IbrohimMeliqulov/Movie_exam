@@ -1,10 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateProfileDto, UpdateProfileDto } from './dto/create.dto';
 
 @Injectable()
 export class ProfilesService {
     constructor(private prisma: PrismaService) { }
+
+    async getAllProfiles() {
+        const profiles = await this.prisma.profiles.findMany()
+
+        return {
+            success: true,
+            data: profiles
+        }
+    }
+
 
     async getProfile(current_user: { id: number, role: string }) {
         const existProfile = await this.prisma.profiles.findFirst({
@@ -41,7 +51,7 @@ export class ProfilesService {
             }
         })
 
-        if (existProfile) throw new NotFoundException("User already has a profile")
+        if (existProfile) throw new ConflictException("User already has a profile")
 
 
         await this.prisma.profiles.create({
@@ -50,6 +60,11 @@ export class ProfilesService {
                 user_id: current_user.id
             }
         })
+
+        return {
+            success: true,
+            message: "Profile created"
+        }
     }
 
 

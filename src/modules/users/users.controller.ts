@@ -43,6 +43,8 @@ export class UsersController {
 
 
 
+
+
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {
@@ -57,7 +59,7 @@ export class UsersController {
     })
     @UseInterceptors(FileInterceptor("avatar", {
         storage: diskStorage({
-            destination: "./src/uploads/avatars",
+            destination: "./src/uploads/photos",
             filename: (req, file, cb) => {
                 const filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
                 cb(null, filename)
@@ -97,7 +99,7 @@ export class UsersController {
     })
     @UseInterceptors(FileInterceptor("avatar", {
         storage: diskStorage({
-            destination: "./src/uploads/avatars",
+            destination: "./src/uploads/photos",
             filename: (req, file, cb) => {
                 const filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
                 cb(null, filename)

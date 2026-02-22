@@ -16,6 +16,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WatchHistoryModule } from './modules/watch_history/watch_history.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminsModule } from './modules/admins/admins.module';
+import { UserSubscriptionsModule } from './modules/user-subscriptions/user-subscriptions.module';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { AdminsModule } from './modules/admins/admins.module';
       global: true,
       signOptions: { expiresIn: "12h" },
       secret: "shaftoli"
-    }), AuthModule, UsersModule, ProfilesModule, SubscriptionPlansModule, PaymentsModule, CategoriesModule, MoviesModule, MovieCategoriesModule, MovieFilesModule, FavoritesModule, ReviewsModule, WatchHistoryModule, AdminsModule],
+    }), AuthModule, UsersModule, ProfilesModule, SubscriptionPlansModule, PaymentsModule, CategoriesModule, MoviesModule, MovieCategoriesModule, MovieFilesModule, FavoritesModule, ReviewsModule, WatchHistoryModule, AdminsModule, UserSubscriptionsModule],
   controllers: [],
   providers: [],
 })

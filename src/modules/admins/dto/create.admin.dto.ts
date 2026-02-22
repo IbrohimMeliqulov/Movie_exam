@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { Transform } from "class-transformer"
 import { IsOptional, IsString, IsStrongPassword } from "class-validator"
 
 export class CreateAdminDto {
@@ -23,20 +24,23 @@ export class CreateAdminDto {
 
 export class UpdateAdminDto {
     @ApiPropertyOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
     @IsString()
-    username: string
+    username?: string
 
 
     @ApiPropertyOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
     @IsString()
-    email: string
+    email?: string
 
 
 
     @ApiPropertyOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
     @IsStrongPassword()
-    password: string
+    password?: string
 }
