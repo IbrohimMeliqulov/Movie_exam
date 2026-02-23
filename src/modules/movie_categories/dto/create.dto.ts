@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { Type } from "class-transformer"
 import { IsNumber, IsOptional } from "class-validator"
 
-export class MoviesCategories {
+export class MoviesCategoriesDto {
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
@@ -17,7 +17,7 @@ export class MoviesCategories {
 
 
 
-export class UpdateMoviesCategories {
+export class UpdateMoviesCategoriesDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsNumber()
