@@ -166,6 +166,7 @@ model Favorites {
   id         Int      @id @default(autoincrement())
   user_id    Int
   movie_id   Int
+  status     Status   @default(active)
   created_at DateTime @default(now())
   users      Users    @relation(fields: [user_id], references: [id])
   movies     Movies   @relation(fields: [movie_id], references: [id])
