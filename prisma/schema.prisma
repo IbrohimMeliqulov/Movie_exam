@@ -12,6 +12,11 @@ enum Role {
   Superadmin
 }
 
+enum Status {
+  active
+  inactive
+}
+
 enum Payment_method {
   card
   paypal
@@ -19,7 +24,7 @@ enum Payment_method {
   crypto
 }
 
-enum Status {
+enum PaymentStatus {
   Active
   Expired
   Canceled
@@ -91,7 +96,7 @@ model User_subscriptions {
   plan_id    Int
   start_date DateTime           @default(now())
   end_date   DateTime
-  status     Status             @default(Pending_payment)
+  status     PaymentStatus      @default(Pending_payment)
   auto_renew Boolean            @default(false)
   created_at DateTime           @default(now())
   users      Users              @relation(fields: [user_id], references: [id])
@@ -151,6 +156,7 @@ model Movie_files {
   id       Int     @id @default(autoincrement())
   movie_id Int
   file_url String
+  status   Status  @default(active)
   quality  Quality
   language String  @default("uz")
   movies   Movies  @relation(fields: [movie_id], references: [id])
