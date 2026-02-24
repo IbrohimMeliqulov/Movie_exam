@@ -1,12 +1,14 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { FavoritesDto, UpdateFavoritesDto } from './dto/favorites.dto';
 
+
+@ApiBearerAuth()
 @Controller('favorites')
 export class FavoritesController {
     constructor(private readonly favoritesServices: FavoritesService) { }

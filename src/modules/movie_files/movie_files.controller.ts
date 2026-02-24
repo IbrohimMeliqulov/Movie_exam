@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { MovieFilesService } from './movie_files.service';
-import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { Role } from '@prisma/client';
@@ -9,6 +9,8 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 import { diskStorage } from 'multer';
 import { MovieFilesDto, UpdateMovieFilesDto } from './dto/create.movie-files';
 
+
+@ApiBearerAuth()
 @Controller('movie-files')
 export class MovieFilesController {
     constructor(private readonly movieFiles: MovieFilesService) { }
