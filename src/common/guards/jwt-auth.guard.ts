@@ -19,7 +19,6 @@ export class AuthGuard implements CanActivate {
 
             let user = await this.jwtService.verify(token)
 
-
             req["user"] = user
 
             return true
