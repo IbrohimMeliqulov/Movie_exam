@@ -24,9 +24,10 @@ export class MoviesController {
     @Roles(Role.Admin, Role.Superadmin, Role.User)
     @Get()
     getAllMovies(
-        @Query() query: GetMoviesQueryDto
+        @Query() query: GetMoviesQueryDto,
+        @Req() req: Request
     ) {
-        return this.moviesService.getAllMovies(query)
+        return this.moviesService.getAllMovies(query, req['user'])
     }
 
 

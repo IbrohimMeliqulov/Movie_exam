@@ -22,7 +22,7 @@ import { UserSubscriptionsModule } from './modules/user-subscriptions/user-subsc
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), "src", 'uploads'),
-      serveRoot: "/files"
+      serveRoot: "/uploads"
     }), ConfigModule.forRoot({
       isGlobal: true
     }), JwtModule.register({
