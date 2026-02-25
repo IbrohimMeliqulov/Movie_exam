@@ -30,29 +30,29 @@ export class SubscriptionPlansDto {
 
 export class UpdateSubscriptionPlansDto {
     @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
     @IsString()
     name?: string
 
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' || value === null ? undefined : value)
+    @ApiPropertyOptional({ example: null })
     @IsOptional()
+    @Transform(({ value }) => value === '' || value === null ? undefined : value)
     @IsNumber({ maxDecimalPlaces: 2 })
     @Min(0)
     @Max(10)
     @Type(() => Number)
     price?: number
 
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' || value === null ? undefined : value)
+    @ApiPropertyOptional({ example: null })
     @IsOptional()
+    @Transform(({ value }) => value === '' || value === null ? undefined : value)
     @IsNumber()
     duration_days?: number
 
     @ApiPropertyOptional()
-    @Transform(({ value }) => !value || value.length === 0 ? undefined : value)
     @IsOptional()
+    @Transform(({ value }) => !value || value.length === 0 ? undefined : value)
     @IsArray()
     @IsString({ each: true })
     features?: string[]

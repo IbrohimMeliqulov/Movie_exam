@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/create.user.dto';
 import { Role, Status } from '@prisma/client';
@@ -41,13 +41,15 @@ export class UsersService {
     async getAllUsers() {
         const users = await this.prisma.users.findMany({
             where: {
-                role: Role.User
+                role: Role.User,
+                status: Status.active
             },
             select: {
                 id: true,
                 username: true,
                 email: true,
-                avatar_url: true
+                avatar_url: true,
+                // password: true
             }
         })
 
@@ -63,7 +65,8 @@ export class UsersService {
         const existUser = await this.prisma.users.findUnique({
             where: {
                 id,
-                role: Role.Admin
+                role: Role.User,
+                status: Status.active
             },
             select: {
                 username: true,
@@ -81,16 +84,17 @@ export class UsersService {
 
 
 
-    async updateUser(id: number, payload: UpdateUserDto, filename: string) {
+    async updateUser(id: number, payload: UpdateUserDto, filename: string, current_user: { id: number, role: Role }) {
         const { password, ...rest } = payload
         const existUser = await this.prisma.users.findUnique({
             where: {
                 id,
-                role: Role.User
+                role: Role.User,
+                status: Status.active
             }
         })
         if (!existUser) throw new NotFoundException("User not found with this id")
-
+        if (existUser.id != current_user.id) throw new ForbiddenException("You don't have a permission")
         await this.prisma.users.update({
             where: { id }, data: {
                 ...rest,
@@ -105,16 +109,19 @@ export class UsersService {
     }
 
 
-    async deleteUser(id: number) {
+    async deleteUser(id: number, current_user: { id: number, role: Role }) {
         const existUser = await this.prisma.users.findUnique({
             where: {
                 id,
-                role: Role.Admin
+                role: Role.User,
+                status: Status.active
             }
         })
 
+
         if (!existUser) throw new NotFoundException("User not found")
-        await this.prisma.users.delete({ where: { id } })
+        if (existUser.id != current_user.id) throw new ForbiddenException("You don't have a permission to delete")
+        await this.prisma.users.update({ where: { id }, data: { status: Status.inactive } })
 
         return {
             success: true,

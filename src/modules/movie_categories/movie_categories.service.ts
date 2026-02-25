@@ -1,7 +1,7 @@
 import { Body, Injectable, NotFoundException, Req } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { MoviesCategoriesDto, UpdateMoviesCategoriesDto } from './dto/create.dto';
-import { Role } from '@prisma/client';
+import { Role, Status } from '@prisma/client';
 
 @Injectable()
 export class MovieCategoriesService {
@@ -9,7 +9,9 @@ export class MovieCategoriesService {
 
 
     async getAllMoviesCategories() {
-        const MoviesCategories = await this.prisma.movie_categories.findMany()
+        const MoviesCategories = await this.prisma.movie_categories.findMany({
+            where: { status: Status.active }
+        })
 
         return {
             success: true,
@@ -19,7 +21,10 @@ export class MovieCategoriesService {
 
     async getOneMoviesCategory(id: number) {
         const existMovieCategory = await this.prisma.movie_categories.findUnique({
-            where: { id }
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existMovieCategory) throw new NotFoundException()
 
@@ -34,14 +39,16 @@ export class MovieCategoriesService {
 
         const existMovie = await this.prisma.movies.findUnique({
             where: {
-                id: payload.movie_id
+                id: payload.movie_id,
+                status: Status.active
             }
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
 
         const existCategory = await this.prisma.categories.findUnique({
             where: {
-                id: payload.category_id
+                id: payload.category_id,
+                status: Status.active
             }
         })
         if (!existCategory) throw new NotFoundException("")
@@ -49,24 +56,37 @@ export class MovieCategoriesService {
         await this.prisma.movie_categories.create({
             data: payload
         })
+        return {
+            success: true,
+            message: "Movie category created"
+        }
     }
 
 
     async updateMovieCategory(id: number, payload: UpdateMoviesCategoriesDto) {
         const existMovieCategory = await this.prisma.movie_categories.findUnique({
-            where: { id }
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existMovieCategory) throw new NotFoundException("Movie category not found")
 
         if (payload.category_id) {
             const existCategory = await this.prisma.categories.findUnique({
-                where: { id }
+                where: {
+                    id,
+                    status: Status.active
+                }
             })
             if (!existCategory) throw new NotFoundException("category not found")
         }
         if (payload.movie_id) {
             const existMovie = await this.prisma.movies.findUnique({
-                where: { id }
+                where: {
+                    id,
+                    status: Status.active
+                }
             })
             if (!existMovie) throw new NotFoundException("Movie not found")
         }
@@ -85,11 +105,14 @@ export class MovieCategoriesService {
 
     async deleteMoviesCategories(id: number) {
         const existMovieCategory = await this.prisma.movie_categories.findUnique({
-            where: { id }
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existMovieCategory) throw new NotFoundException("Movie category not found")
-        await this.prisma.movie_categories.delete({
-            where: { id }
+        await this.prisma.movie_categories.update({
+            where: { id }, data: { status: Status.inactive }
         })
         return {
             success: true,

@@ -59,6 +59,7 @@ model Users {
   password          String
   role              Role                 @default(User)
   avatar_url        String?
+  status            Status               @default(active)
   created_at        DateTime             @default(now())
   updated_at        DateTime             @default(now())
   profiles          Profiles[]
@@ -75,6 +76,7 @@ model Profiles {
   full_name  String
   phone      String
   country    String
+  status     Status   @default(active)
   created_at DateTime @default(now())
   users      Users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
@@ -85,23 +87,25 @@ model Subscription_plans {
   price             Decimal
   duration_days     Int
   features          Json
+  status            Status               @default(active)
   isActive          Boolean              @default(true)
   created_at        DateTime             @default(now())
   userSubscriptions User_subscriptions[]
 }
 
 model User_subscriptions {
-  id         Int                @id @default(autoincrement())
-  user_id    Int
-  plan_id    Int
-  start_date DateTime           @default(now())
-  end_date   DateTime
-  status     PaymentStatus      @default(Pending_payment)
-  auto_renew Boolean            @default(false)
-  created_at DateTime           @default(now())
-  users      Users              @relation(fields: [user_id], references: [id])
-  plans      Subscription_plans @relation(fields: [plan_id], references: [id])
-  payments   Payments[]
+  id             Int                @id @default(autoincrement())
+  user_id        Int
+  plan_id        Int
+  start_date     DateTime           @default(now())
+  end_date       DateTime
+  status         Status             @default(active)
+  payment_status PaymentStatus      @default(Pending_payment)
+  auto_renew     Boolean            @default(false)
+  created_at     DateTime           @default(now())
+  users          Users              @relation(fields: [user_id], references: [id])
+  plans          Subscription_plans @relation(fields: [plan_id], references: [id])
+  payments       Payments[]
 }
 
 model Payments {
@@ -110,7 +114,8 @@ model Payments {
   amount               Decimal
   payment_method       Payment_method
   payment_details      Json
-  status               Payment_status     @default(completed)
+  status               Status             @default(active)
+  payment_status       Payment_status     @default(completed)
   created_at           DateTime           @default(now())
   user_subscriptions   User_subscriptions @relation(fields: [user_subscription_id], references: [id])
 }
@@ -120,6 +125,7 @@ model Categories {
   name            String
   slug            String             @unique
   description     String
+  status          Status             @default(active)
   movieCategories Movie_categories[]
 }
 
@@ -135,6 +141,7 @@ model Movies {
   subscription_type Subscription_type  @default(free)
   view_count        Int                @default(0)
   created_by        Int
+  status            Status             @default(active)
   created_at        DateTime           @default(now())
   creaters          Users              @relation(fields: [created_by], references: [id])
   movieCategories   Movie_categories[]
@@ -148,6 +155,7 @@ model Movie_categories {
   id          Int        @id @default(autoincrement())
   movie_id    Int
   category_id Int
+  status      Status     @default(active)
   movies      Movies     @relation(fields: [movie_id], references: [id])
   categories  Categories @relation(fields: [category_id], references: [id])
 }
@@ -189,8 +197,11 @@ model Watch_history {
   user_id            Int
   movie_id           Int
   watched_duration   Int
+  status             Status   @default(active)
   watched_percentage Decimal
   last_watched       DateTime @default(now())
   users              Users    @relation(fields: [user_id], references: [id])
   movies             Movies   @relation(fields: [movie_id], references: [id])
+
+  @@unique([user_id, movie_id])
 }

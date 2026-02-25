@@ -42,8 +42,7 @@ export class PaymentsService {
                 user_subscriptions: {
                     select: {
                         start_date: true,
-                        end_date: true
-                    }, include: {
+                        end_date: true,
                         plans: {
                             select: {
                                 name: true,
@@ -53,7 +52,8 @@ export class PaymentsService {
                     }
                 }
             }
-        })
+        }
+        )
 
         return {
             success: true,
@@ -81,12 +81,17 @@ export class PaymentsService {
         if (existSubscription.user_id != current_user.id) {
             throw new ForbiddenException("You don't have the permission")
         }
-        if (payload.amount != existSubscription.plans.price) {
+        if (payload.amount != existSubscription.plans.price.toNumber()) {
             throw new BadRequestException("Money is not enough to buy the subscription plan")
         }
         await this.prisma.payments.create({
             data: payload
         })
+
+        return {
+            success: true,
+            message: "Subscription plan successfully bought"
+        }
     }
 
 

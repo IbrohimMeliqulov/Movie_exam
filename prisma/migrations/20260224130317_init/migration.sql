@@ -2,10 +2,13 @@
 CREATE TYPE "Role" AS ENUM ('User', 'Admin', 'Superadmin');
 
 -- CreateEnum
+CREATE TYPE "Status" AS ENUM ('active', 'inactive');
+
+-- CreateEnum
 CREATE TYPE "Payment_method" AS ENUM ('card', 'paypal', 'bank_transfer', 'crypto');
 
 -- CreateEnum
-CREATE TYPE "Status" AS ENUM ('Active', 'Expired', 'Canceled', 'Pending_payment');
+CREATE TYPE "PaymentStatus" AS ENUM ('Active', 'Expired', 'Canceled', 'Pending_payment');
 
 -- CreateEnum
 CREATE TYPE "Payment_status" AS ENUM ('pending', 'completed', 'failed', 'refunded');
@@ -23,7 +26,8 @@ CREATE TABLE "Users" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'User',
-    "avatar_url" TEXT NOT NULL,
+    "avatar_url" TEXT,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -37,6 +41,7 @@ CREATE TABLE "Profiles" (
     "full_name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "country" TEXT NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Profiles_pkey" PRIMARY KEY ("id")
@@ -48,7 +53,8 @@ CREATE TABLE "Subscription_plans" (
     "name" TEXT NOT NULL,
     "price" DECIMAL(65,30) NOT NULL,
     "duration_days" INTEGER NOT NULL,
-    "features" JSONB[],
+    "features" JSONB NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -62,7 +68,8 @@ CREATE TABLE "User_subscriptions" (
     "plan_id" INTEGER NOT NULL,
     "start_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "end_date" TIMESTAMP(3) NOT NULL,
-    "status" "Status" NOT NULL DEFAULT 'Pending_payment',
+    "status" "Status" NOT NULL DEFAULT 'active',
+    "payment_status" "PaymentStatus" NOT NULL DEFAULT 'Pending_payment',
     "auto_renew" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -75,8 +82,9 @@ CREATE TABLE "Payments" (
     "user_subscription_id" INTEGER NOT NULL,
     "amount" DECIMAL(65,30) NOT NULL,
     "payment_method" "Payment_method" NOT NULL,
-    "payment_details" JSONB[],
-    "status" "Payment_status" NOT NULL DEFAULT 'completed',
+    "payment_details" JSONB NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
+    "payment_status" "Payment_status" NOT NULL DEFAULT 'completed',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Payments_pkey" PRIMARY KEY ("id")
@@ -88,6 +96,7 @@ CREATE TABLE "Categories" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
 
     CONSTRAINT "Categories_pkey" PRIMARY KEY ("id")
 );
@@ -105,6 +114,7 @@ CREATE TABLE "Movies" (
     "subscription_type" "Subscription_type" NOT NULL DEFAULT 'free',
     "view_count" INTEGER NOT NULL DEFAULT 0,
     "created_by" INTEGER NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Movies_pkey" PRIMARY KEY ("id")
@@ -115,6 +125,7 @@ CREATE TABLE "Movie_categories" (
     "id" SERIAL NOT NULL,
     "movie_id" INTEGER NOT NULL,
     "category_id" INTEGER NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
 
     CONSTRAINT "Movie_categories_pkey" PRIMARY KEY ("id")
 );
@@ -124,6 +135,7 @@ CREATE TABLE "Movie_files" (
     "id" SERIAL NOT NULL,
     "movie_id" INTEGER NOT NULL,
     "file_url" TEXT NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "quality" "Quality" NOT NULL,
     "language" TEXT NOT NULL DEFAULT 'uz',
 
@@ -135,6 +147,7 @@ CREATE TABLE "Favorites" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "movie_id" INTEGER NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Favorites_pkey" PRIMARY KEY ("id")
@@ -147,6 +160,7 @@ CREATE TABLE "Reviews" (
     "movie_id" INTEGER NOT NULL,
     "rating" INTEGER NOT NULL,
     "comment" TEXT NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Reviews_pkey" PRIMARY KEY ("id")
@@ -158,6 +172,7 @@ CREATE TABLE "Watch_history" (
     "user_id" INTEGER NOT NULL,
     "movie_id" INTEGER NOT NULL,
     "watched_duration" INTEGER NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'active',
     "watched_percentage" DECIMAL(65,30) NOT NULL,
     "last_watched" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -176,8 +191,11 @@ CREATE UNIQUE INDEX "Categories_slug_key" ON "Categories"("slug");
 -- CreateIndex
 CREATE UNIQUE INDEX "Movies_slug_key" ON "Movies"("slug");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Watch_history_user_id_movie_id_key" ON "Watch_history"("user_id", "movie_id");
+
 -- AddForeignKey
-ALTER TABLE "Profiles" ADD CONSTRAINT "Profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Profiles" ADD CONSTRAINT "Profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User_subscriptions" ADD CONSTRAINT "User_subscriptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

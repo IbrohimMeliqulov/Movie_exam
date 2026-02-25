@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { MovieFilesService } from './movie_files.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -115,6 +115,21 @@ export class MovieFilesController {
         @UploadedFile() file?: Express.Multer.File
     ) {
         return this.movieFiles.updateMovieFiles(id, payload, file?.path, file?.filename)
+    }
+
+
+
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Delete(":id")
+    deleteMovieFile(
+        @Param("id", ParseIntPipe) id: number
+    ) {
+        return this.movieFiles.deleteMovieFile(id)
     }
 
 }

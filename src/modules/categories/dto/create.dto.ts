@@ -1,15 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { Transform } from "class-transformer"
 import { IsOptional, IsString } from "class-validator"
 
 export class CategoriesDto {
     @ApiProperty()
     @IsString()
     name: string
-
-
-    @ApiProperty()
-    @IsString()
-    slug: string
 
 
     @ApiProperty()
@@ -22,18 +18,15 @@ export class CategoriesDto {
 export class UpdateCategoriesDto {
     @ApiPropertyOptional()
     @IsOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
     @IsString()
     name?: string
 
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    slug?: string
-
 
     @ApiPropertyOptional()
     @IsOptional()
+    @Transform(({ value }) => value === '' ? undefined : value)
     @IsString()
     description?: string
 }

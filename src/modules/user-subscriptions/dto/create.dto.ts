@@ -12,16 +12,6 @@ export class UserSubscriptionsDto {
     @IsNumber()
     @Type(() => Number)
     plan_id: number
-
-
-    @ApiProperty()
-    @IsString()
-    start_date: string
-
-
-    @ApiProperty()
-    @IsString()
-    end_date: string
 }
 
 
@@ -41,17 +31,4 @@ export class UpdateUserSubscriptionsDto {
     @Type(() => Number)
     plan_id?: number
 
-
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
-    @IsString()
-    start_date?: string
-
-
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
-    @IsString()
-    end_date?: string
 }

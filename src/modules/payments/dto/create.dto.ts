@@ -10,16 +10,11 @@ export class PaymentDto {
     user_subscription_id: number
 
     @ApiProperty()
-    @Min(0)
-    @Type(() => Number)
-    price: number
-
-    @ApiProperty()
     @IsNumber({ maxDecimalPlaces: 2 })
     @Min(0)
     @Max(10)
     @Type(() => Number)
-    amount: Decimal
+    amount: number
 
     @ApiProperty({ enum: Payment_method, enumName: "Payment_method" })
     @IsEnum(Payment_method)
@@ -27,8 +22,8 @@ export class PaymentDto {
 
 
     @ApiProperty()
-    @IsArray({ each: true })
-    @IsString()
+    @IsArray()
+    @IsString({ each: true })
     payment_details: string[]
 }
 
@@ -44,18 +39,10 @@ export class UpdatePaymentDto {
     @ApiPropertyOptional()
     @Transform(({ value }) => value === '' ? undefined : value)
     @IsOptional()
-    @Min(0)
-    @Max(10)
-    @Type(() => Number)
-    price?: number
-
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
     @IsNumber({ maxDecimalPlaces: 2 })
     @Min(0)
     @Type(() => Number)
-    amount?: Decimal
+    amount?: number
 
     @ApiPropertyOptional({ enum: Payment_method, enumName: "Payment_method" })
     @Transform(({ value }) => value === '' ? undefined : value)

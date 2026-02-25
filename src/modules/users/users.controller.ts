@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/create.user.dto';
@@ -123,9 +123,10 @@ export class UsersController {
     updateUser(
         @Param("id", ParseIntPipe) id: number,
         @Body() payload: UpdateUserDto,
-        @UploadedFile() file: Express.Multer.File
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: Request
     ) {
-        return this.userService.updateUser(id, payload, file?.filename)
+        return this.userService.updateUser(id, payload, file?.filename, req['user'])
     }
 
 
@@ -136,8 +137,11 @@ export class UsersController {
     @UseGuards(AuthGuard, RoleGuard)
     @Roles(Role.User)
     @Delete(":id")
-    deleteAdmin(@Param("id", ParseIntPipe) id: number) {
-        return this.userService.deleteUser(id)
+    deleteAdmin(
+        @Param("id", ParseIntPipe) id: number,
+        @Req() req: Request
+    ) {
+        return this.userService.deleteUser(id, req['user'])
     }
 
 
