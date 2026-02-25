@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Role, Status } from '@prisma/client';
+import { Prisma, Role, Status, Subscription_type } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
 import { slugify } from 'src/core/utils/slugify';
@@ -10,37 +10,139 @@ import { GetMoviesQueryDto } from './dto/pagination';
 export class MoviesService {
     constructor(private prisma: PrismaService) { }
 
-    async getAllMovies(query: GetMoviesQueryDto) {
-        const { page = 1, limit = 10, category, search, subscription_type } = query;
+    async getAllMovies(query: GetMoviesQueryDto, current_user: { id: number, role: Role }) {
+        const page = query.page || 1
+        const limit = query.limit || 10
         const skip = (page - 1) * limit;
 
-        const where: Prisma.MoviesWhereInput = {
-            status: Status.active,
-            ...(subscription_type && { subscription_type }),
-            ...(search && {
-                title: { contains: search, mode: 'insensitive' }
-            }),
-            ...(category && {
-                movie_categories: {
-                    some: {
-                        category: {
-                            name: { equals: category, mode: 'insensitive' }
-                        }
+        const where: Prisma.MoviesWhereInput = { status: Status.active }
+
+
+
+        const isAdminOrSuperadmin = current_user?.role === Role.Admin || current_user?.role === Role.Superadmin
+        if (!isAdminOrSuperadmin) {
+
+            let hasSubscription = false;
+            if (current_user) {
+                const subscription = await this.prisma.user_subscriptions.findFirst({
+                    where: {
+                        user_id: current_user.id,
+                        status: Status.active,
+                        end_date: { gt: new Date() }
+                    }
+                });
+
+                if (subscription) {
+                    hasSubscription = true
+                }
+            }
+
+            if (!hasSubscription) {
+                where.subscription_type = Subscription_type.free
+            }
+
+
+            if (hasSubscription && query.subscription_type) {
+                where.subscription_type = query.subscription_type
+            }
+        }
+
+
+
+        if (isAdminOrSuperadmin && query.subscription_type) {
+            where.subscription_type = query.subscription_type
+        }
+
+        if (query.search) {
+            where.title = { contains: query.search, mode: 'insensitive' }
+
+        }
+
+        if (query.category) {
+            where.movieCategories = {
+                some: {
+                    categories: {
+                        name: { equals: query.category, mode: 'insensitive' },
+                        status: Status.active
                     }
                 }
-            })
-        };
-
+            }
+        }
 
         const movies = await this.prisma.movies.findMany({
-            where: { status: Status.active }
+            where,
+            skip,
+            take: limit,
+            select: {
+                id: true,
+                title: true,
+                slug: true,
+                poster_url: true,
+                release_year: true,
+                rating: true,
+                subscription_type: true,
+                movieCategories: {
+                    where: { status: Status.active },
+                    select: {
+                        categories: {
+                            select: { name: true }
+                        }
+                    }
+                },
+                movieFiles: {
+                    where: { status: Status.active },
+                    select: {
+                        file_url: true,
+                        quality: true,
+                        language: true
+                    }
+                }
+            }
         })
+
+        const total = await this.prisma.movies.count({ where })
+
+        const result = [] as any[]
+
+        for (const movie of movies) {
+            const categories: string[] = []
+
+            for (const mc of movie.movieCategories) {
+                categories.push(mc.categories?.name || " ")
+            }
+
+            result.push({
+                id: movie.id,
+                title: movie.title,
+                slug: movie.slug,
+                poster_url: movie.poster_url,
+                release_year: movie.release_year,
+                rating: movie.rating,
+                subscription_type: movie.subscription_type,
+                files: movie.movieFiles.map(f => ({
+                    url: `http://localhost:3000/uploads/movies/${f.file_url}`,
+                    qality: f.quality,
+                    language: f.quality
+                })),
+                categories: categories
+            })
+        }
 
         return {
             success: true,
-            data: movies
+            data: {
+                movies: result,
+                pagination: {
+                    total: total,
+                    page: page,
+                    limit: limit,
+                    pages: Math.ceil(total / limit)
+                }
+            }
         }
     }
+
+
 
     async getOneMovie(id: number, current_user: { id: number, role: Role }) {
         const existMovie = await this.prisma.movies.findUnique({
@@ -63,6 +165,8 @@ export class MoviesService {
             data: existMovie
         }
     }
+
+
 
 
     async createMovie(payload: MoviesDto, filename: string, current_user: { id: number, role: Role }) {
@@ -90,6 +194,8 @@ export class MoviesService {
             message: "Movie created"
         }
     }
+
+
 
     async updateMovie(id: number, payload: UpdateMoviesDto, current_user: { id: number, role: Role }, filename?: string) {
         const existMovie = await this.prisma.movies.findUnique({
