@@ -3,12 +3,14 @@ import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/create.user.dto';
 import { Role, Status } from '@prisma/client';
 import { hashPassword } from 'src/core/utils/bcrypt';
+import * as fs from 'fs';
+import path, { join } from 'path';
 
 @Injectable()
 export class UsersService {
     constructor(private prisma: PrismaService) { }
 
-    async createUser(payload: CreateUserDto, filename?: string) {
+    async createUser(payload: CreateUserDto, file?: Express.Multer.File) {
         const existUser = await this.prisma.users.findFirst({
             where: {
                 OR: [
@@ -21,6 +23,11 @@ export class UsersService {
 
         const hashPass = await hashPassword(payload.password)
 
+        let filename: string | undefined
+        if (file) {
+            filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
+            await fs.writeFileSync(join("./src/uploads/photos", filename), file.buffer)
+        }
         await this.prisma.users.create({
             data: {
                 ...payload,
@@ -84,7 +91,7 @@ export class UsersService {
 
 
 
-    async updateUser(id: number, payload: UpdateUserDto, filename: string, current_user: { id: number, role: Role }) {
+    async updateUser(id: number, payload: UpdateUserDto, current_user: { id: number, role: Role }, file?: Express.Multer.File) {
         const { password, ...rest } = payload
         const existUser = await this.prisma.users.findUnique({
             where: {
@@ -95,6 +102,17 @@ export class UsersService {
         })
         if (!existUser) throw new NotFoundException("User not found with this id")
         if (existUser.id != current_user.id) throw new ForbiddenException("You don't have a permission")
+        let filename: string | undefined
+        if (file) {
+            filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
+            fs.writeFileSync(path.join("./src/uploads/photos", filename), file.buffer)
+        }
+        if (existUser.avatar_url) {
+            const oldPath = path.join("./src/uploads/photos", existUser.avatar_url)
+            if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath)
+            }
+        }
         await this.prisma.users.update({
             where: { id }, data: {
                 ...rest,
