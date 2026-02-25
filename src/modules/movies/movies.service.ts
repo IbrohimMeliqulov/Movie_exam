@@ -1,15 +1,37 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role, Status } from '@prisma/client';
+import { Prisma, Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
 import { slugify } from 'src/core/utils/slugify';
 import { Decimal } from '@prisma/client/runtime/client';
+import { GetMoviesQueryDto } from './dto/pagination';
 
 @Injectable()
 export class MoviesService {
     constructor(private prisma: PrismaService) { }
 
-    async getAllMovies() {
+    async getAllMovies(query: GetMoviesQueryDto) {
+        const { page = 1, limit = 10, category, search, subscription_type } = query;
+        const skip = (page - 1) * limit;
+
+        const where: Prisma.MoviesWhereInput = {
+            status: Status.active,
+            ...(subscription_type && { subscription_type }),
+            ...(search && {
+                title: { contains: search, mode: 'insensitive' }
+            }),
+            ...(category && {
+                movie_categories: {
+                    some: {
+                        category: {
+                            name: { equals: category, mode: 'insensitive' }
+                        }
+                    }
+                }
+            })
+        };
+
+
         const movies = await this.prisma.movies.findMany({
             where: { status: Status.active }
         })

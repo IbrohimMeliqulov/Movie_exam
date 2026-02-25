@@ -127,6 +127,8 @@ model Categories {
   description     String
   status          Status             @default(active)
   movieCategories Movie_categories[]
+
+  @@unique([slug, status])
 }
 
 model Movies {

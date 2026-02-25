@@ -10,7 +10,24 @@ export class MovieCategoriesService {
 
     async getAllMoviesCategories() {
         const MoviesCategories = await this.prisma.movie_categories.findMany({
-            where: { status: Status.active }
+            where: { status: Status.active },
+            select: {
+                id: true,
+                movie_id: true,
+                category_id: true,
+                movies: {
+                    select: {
+                        title: true,
+                        slug: true,
+                        release_year: true,
+                    }
+                },
+                categories: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
         })
 
         return {
@@ -20,10 +37,24 @@ export class MovieCategoriesService {
     }
 
     async getOneMoviesCategory(id: number) {
-        const existMovieCategory = await this.prisma.movie_categories.findUnique({
+        const existMovieCategory = await this.prisma.movie_categories.findFirst({
             where: {
                 id,
                 status: Status.active
+            },
+            select: {
+                id: true,
+                movies: {
+                    select: {
+                        title: true,
+                        slug: true,
+                        release_year: true,
+                    }
+                }, categories: {
+                    select: {
+                        name: true,
+                    }
+                }
             }
         })
         if (!existMovieCategory) throw new NotFoundException()
@@ -37,7 +68,7 @@ export class MovieCategoriesService {
 
     async createMovieCategory(payload: MoviesCategoriesDto, current_user: { id: number, role: Role }) {
 
-        const existMovie = await this.prisma.movies.findUnique({
+        const existMovie = await this.prisma.movies.findFirst({
             where: {
                 id: payload.movie_id,
                 status: Status.active
@@ -45,7 +76,16 @@ export class MovieCategoriesService {
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
 
-        const existCategory = await this.prisma.categories.findUnique({
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id,
+                role: current_user.role,
+                status: Status.active
+            }
+        })
+        if (!existUser) throw new NotFoundException("User not found")
+
+        const existCategory = await this.prisma.categories.findFirst({
             where: {
                 id: payload.category_id,
                 status: Status.active
@@ -63,28 +103,39 @@ export class MovieCategoriesService {
     }
 
 
-    async updateMovieCategory(id: number, payload: UpdateMoviesCategoriesDto) {
-        const existMovieCategory = await this.prisma.movie_categories.findUnique({
+    async updateMovieCategory(id: number, payload: UpdateMoviesCategoriesDto, current_user: { id: number, role: Role }) {
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id,
+                role: current_user.role,
+                status: Status.active
+            }
+        })
+        if (!existUser) { throw new NotFoundException("User not found") }
+
+        const existMovieCategory = await this.prisma.movie_categories.findFirst({
             where: {
                 id,
                 status: Status.active
             }
         })
+
         if (!existMovieCategory) throw new NotFoundException("Movie category not found")
 
         if (payload.category_id) {
-            const existCategory = await this.prisma.categories.findUnique({
+            const existCategory = await this.prisma.categories.findFirst({
                 where: {
-                    id,
+                    id: payload.category_id,
                     status: Status.active
                 }
             })
             if (!existCategory) throw new NotFoundException("category not found")
         }
+
         if (payload.movie_id) {
-            const existMovie = await this.prisma.movies.findUnique({
+            const existMovie = await this.prisma.movies.findFirst({
                 where: {
-                    id,
+                    id: payload.movie_id,
                     status: Status.active
                 }
             })
@@ -104,13 +155,15 @@ export class MovieCategoriesService {
 
 
     async deleteMoviesCategories(id: number) {
-        const existMovieCategory = await this.prisma.movie_categories.findUnique({
+        const existMovieCategory = await this.prisma.movie_categories.findFirst({
             where: {
                 id,
                 status: Status.active
             }
         })
+
         if (!existMovieCategory) throw new NotFoundException("Movie category not found")
+
         await this.prisma.movie_categories.update({
             where: { id }, data: { status: Status.inactive }
         })
