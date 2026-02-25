@@ -58,13 +58,6 @@ export class UsersController {
         }
     })
     @UseInterceptors(FileInterceptor("avatar", {
-        storage: diskStorage({
-            destination: "./src/uploads/photos",
-            filename: (req, file, cb) => {
-                const filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
-                cb(null, filename)
-            }
-        }),
         fileFilter: (req, file, cb) => {
             const existFile = ["png", "jpg", "jpeg"]
 
@@ -79,7 +72,7 @@ export class UsersController {
         @Body() payload: CreateUserDto,
         @UploadedFile() file?: Express.Multer.File
     ) {
-        return this.userService.createUser(payload, file?.filename)
+        return this.userService.createUser(payload, file)
     }
 
 
@@ -98,13 +91,6 @@ export class UsersController {
         }
     })
     @UseInterceptors(FileInterceptor("avatar", {
-        storage: diskStorage({
-            destination: "./src/uploads/photos",
-            filename: (req, file, cb) => {
-                const filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
-                cb(null, filename)
-            }
-        }),
         fileFilter: (req, file, cb) => {
             const existFile = ["png", "jpg", "jpeg"]
 
@@ -123,10 +109,10 @@ export class UsersController {
     updateUser(
         @Param("id", ParseIntPipe) id: number,
         @Body() payload: UpdateUserDto,
-        @UploadedFile() file: Express.Multer.File,
-        @Req() req: Request
+        @Req() req: Request,
+        @UploadedFile() file?: Express.Multer.File
     ) {
-        return this.userService.updateUser(id, payload, file?.filename, req['user'])
+        return this.userService.updateUser(id, payload, req['user'], file)
     }
 
 
