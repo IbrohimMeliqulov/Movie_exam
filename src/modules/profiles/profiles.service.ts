@@ -1,13 +1,16 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CreateProfileDto, UpdateProfileDto } from './dto/create.dto';
+import { Status } from '@prisma/client';
 
 @Injectable()
 export class ProfilesService {
     constructor(private prisma: PrismaService) { }
 
     async getAllProfiles() {
-        const profiles = await this.prisma.profiles.findMany()
+        const profiles = await this.prisma.profiles.findMany({
+            where: { status: Status.active }
+        })
 
         return {
             success: true,
@@ -19,7 +22,8 @@ export class ProfilesService {
     async getProfile(current_user: { id: number, role: string }) {
         const existProfile = await this.prisma.profiles.findFirst({
             where: {
-                user_id: current_user.id
+                user_id: current_user.id,
+                status: Status.active
             },
             select: {
                 id: true,
@@ -40,7 +44,8 @@ export class ProfilesService {
     async createProfile(payload: CreateProfileDto, current_user: { id: number, role: string }) {
         const existUser = await this.prisma.users.findUnique({
             where: {
-                id: current_user.id
+                id: current_user.id,
+                status: Status.active
             }
         })
 
@@ -48,6 +53,7 @@ export class ProfilesService {
         const existProfile = await this.prisma.profiles.findFirst({
             where: {
                 user_id: current_user.id,
+                status: Status.active
             }
         })
 
@@ -72,7 +78,8 @@ export class ProfilesService {
         const existProfile = await this.prisma.profiles.findUnique({
             where: {
                 id,
-                user_id: current_user.id
+                user_id: current_user.id,
+                status: Status.active
             }
         })
         if (!existProfile) throw new NotFoundException("Profile not found")
@@ -89,12 +96,13 @@ export class ProfilesService {
         const existFile = await this.prisma.profiles.findUnique({
             where: {
                 id,
-                user_id: current_user.id
+                user_id: current_user.id,
+                status: Status.active
             }
         })
         if (!existFile) throw new NotFoundException("Profile not found")
 
-        await this.prisma.profiles.delete({ where: { id } })
+        await this.prisma.profiles.update({ where: { id }, data: { status: Status.inactive } })
 
         return {
             success: true,

@@ -29,7 +29,7 @@ import { UserSubscriptionsModule } from './modules/user-subscriptions/user-subsc
       global: true,
       signOptions: { expiresIn: "12h" },
       secret: "shaftoli"
-    }), AuthModule, UsersModule, ProfilesModule, SubscriptionPlansModule, PaymentsModule, CategoriesModule, MoviesModule, MovieCategoriesModule, MovieFilesModule, FavoritesModule, ReviewsModule, WatchHistoryModule, AdminsModule, UserSubscriptionsModule],
+    }), AuthModule, UsersModule, AdminsModule, ProfilesModule, SubscriptionPlansModule, UserSubscriptionsModule, PaymentsModule, CategoriesModule, MoviesModule, MovieCategoriesModule, MovieFilesModule, FavoritesModule, ReviewsModule, WatchHistoryModule],
   controllers: [],
   providers: [],
 })

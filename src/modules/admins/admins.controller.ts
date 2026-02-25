@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -80,6 +80,7 @@ export class AdminsController {
         @Body() payload: CreateAdminDto,
         @UploadedFile() file: Express.Multer.File
     ) {
+        console.log(payload)
         return this.adminService.createAdmin(payload, file?.filename)
     }
 
@@ -124,9 +125,10 @@ export class AdminsController {
     updateAdmin(
         @Param("id", ParseIntPipe) id: number,
         @Body() payload: UpdateAdminDto,
-        @UploadedFile() file: Express.Multer.File
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: Request
     ) {
-        return this.adminService.updateAdmin(id, payload, file?.filename)
+        return this.adminService.updateAdmin(id, payload, req['user'], file?.filename)
     }
 
 

@@ -28,12 +28,11 @@ export class UserSubscriptionsController {
         summary: `${Role.Superadmin},${Role.Admin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Superadmin, Role.Admin)
-    @Get("single/:id")
+    @Roles(Role.Superadmin, Role.Admin, Role.User)
+    @Get("own")
     getOwnSubscription(
-        @Param("id", ParseIntPipe) id: number,
         @Req() req: Request) {
-        return this.userSubscriptions.getOwnSubscription(id, req["user"])
+        return this.userSubscriptions.getOwnSubscription(req["user"])
     }
 
 
@@ -77,7 +76,7 @@ export class UserSubscriptionsController {
         @Param("id", ParseIntPipe) id: number,
         @Req() req: Request
     ) {
-        return this.userSubscriptions.deleteUserSubscriptions(id, req["user"])
+        return this.userSubscriptions.deleteUserSubscription(id, req["user"])
     }
 
 }

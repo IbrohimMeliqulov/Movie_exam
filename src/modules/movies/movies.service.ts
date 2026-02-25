@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
 import { slugify } from 'src/core/utils/slugify';
@@ -10,7 +10,9 @@ export class MoviesService {
     constructor(private prisma: PrismaService) { }
 
     async getAllMovies() {
-        const movies = await this.prisma.movies.findMany()
+        const movies = await this.prisma.movies.findMany({
+            where: { status: Status.active }
+        })
 
         return {
             success: true,
@@ -20,11 +22,17 @@ export class MoviesService {
 
     async getOneMovie(id: number, current_user: { id: number, role: Role }) {
         const existMovie = await this.prisma.movies.findUnique({
-            where: { id }
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
         const existCreator = await this.prisma.users.findUnique({
-            where: { id: current_user.id }
+            where: {
+                id: current_user.id,
+                status: Status.active
+            }
         })
         if (!existCreator) throw new ForbiddenException("You don't have a permission for that")
 
@@ -35,19 +43,21 @@ export class MoviesService {
     }
 
 
-    async createMovie(payload: MoviesDto, filename?: string) {
+    async createMovie(payload: MoviesDto, filename: string, current_user: { id: number, role: Role }) {
         const existUser = await this.prisma.users.findUnique({
             where: {
-                id: payload.created_by
+                id: current_user.id,
+                role: current_user.role,
+                status: Status.active
             }
         })
         if (!existUser) throw new NotFoundException("User not found")
-
         const slugTitle = slugify(payload.title)
         await this.prisma.movies.create({
             data: {
                 ...payload,
                 slug: slugTitle,
+                created_by: current_user.id,
                 rating: new Decimal(payload.rating),
                 poster_url: filename ?? ""
             }
@@ -61,7 +71,10 @@ export class MoviesService {
 
     async updateMovie(id: number, payload: UpdateMoviesDto, current_user: { id: number, role: Role }, filename?: string) {
         const existMovie = await this.prisma.movies.findUnique({
-            where: { id },
+            where: {
+                id,
+                status: Status.active
+            },
             select: {
                 creaters: {
                     select: {
@@ -77,7 +90,10 @@ export class MoviesService {
         }
 
         await this.prisma.movies.update({
-            where: { id },
+            where: {
+                id,
+                status: Status.active
+            },
             data: {
                 ...payload,
                 ...(filename && { poster_url: filename })
@@ -93,7 +109,10 @@ export class MoviesService {
 
     async deleteMovie(id: number, current_user: { id: number, role: Role }) {
         const existMovie = await this.prisma.movies.findUnique({
-            where: { id },
+            where: {
+                id,
+                status: Status.active
+            },
             select: {
                 creaters: {
                     select: {
@@ -108,8 +127,8 @@ export class MoviesService {
         if (existMovie.creaters.id !== current_user.id && existMovie.creaters.role !== current_user.role) {
             throw new ForbiddenException("You don't have a permission to delete")
         }
-        await this.prisma.movies.delete({
-            where: { id }
+        await this.prisma.movies.update({
+            where: { id, status: Status.active }, data: { status: Status.inactive }
         })
         return {
             success: true,

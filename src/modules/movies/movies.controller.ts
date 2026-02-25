@@ -48,6 +48,7 @@ export class MoviesController {
             properties: {
                 title: { type: "string" },
                 description: { type: "string" },
+                subscription_type: { type: "string" },
                 release_year: { type: "number" },
                 duration_minutes: { type: "number" },
                 rating: { type: "number" },
@@ -80,9 +81,10 @@ export class MoviesController {
     @Post()
     createMovie(
         @Body() payload: MoviesDto,
-        @UploadedFile() file?: Express.Multer.File
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: Request
     ) {
-        return this.moviesService.createMovie(payload, file?.filename)
+        return this.moviesService.createMovie(payload, file.filename, req['user'])
     }
 
 
@@ -96,6 +98,7 @@ export class MoviesController {
                 title: { type: "string" },
                 description: { type: "string" },
                 release_year: { type: "number" },
+                subscription_type: { type: "enum" },
                 duration_minutes: { type: "number" },
                 rating: { type: "number" },
                 poster: { type: "string", format: 'binary' },
