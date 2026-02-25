@@ -13,10 +13,8 @@ export class UsersService {
     async createUser(payload: CreateUserDto, file?: Express.Multer.File) {
         const existUser = await this.prisma.users.findFirst({
             where: {
-                OR: [
-                    { username: payload.username },
-                    { email: payload.email }
-                ]
+                username: payload.username,
+                // status: Status.active,
             }
         })
         if (existUser) throw new ConflictException("You already registered. Please log in")
@@ -56,13 +54,22 @@ export class UsersService {
                 username: true,
                 email: true,
                 avatar_url: true,
-                // password: true
             }
         })
 
+        const results: any[] = []
+        for (const user of users) {
+            results.push({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                avatar_url: user.avatar_url ? `http://localhost:3000/uploads/photos/${user.avatar_url}` : null
+            })
+        }
+
         return {
             success: true,
-            data: users
+            data: results
         }
     }
 
@@ -101,8 +108,11 @@ export class UsersService {
             }
         })
         if (!existUser) throw new NotFoundException("User not found with this id")
+
         if (existUser.id != current_user.id) throw new ForbiddenException("You don't have a permission")
+
         let filename: string | undefined
+
         if (file) {
             filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
             fs.writeFileSync(path.join("./src/uploads/photos", filename), file.buffer)

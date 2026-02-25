@@ -39,7 +39,7 @@ export class MoviesController {
     @Get(":id")
     getSingleMovie(
         @Param("id", ParseIntPipe) id: number,
-        @Req() req: Request
+        @Req() req: Request,
     ) {
         return this.moviesService.getOneMovie(id, req["user"])
     }
