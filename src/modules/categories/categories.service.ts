@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CategoriesDto, UpdateCategoriesDto } from './dto/create.dto';
 import { slugify } from 'src/core/utils/slugify';
@@ -20,7 +20,7 @@ export class CategoriesService {
     }
 
     async getOneCategory(id: number) {
-        const existCategory = await this.prisma.categories.findUnique({
+        const existCategory = await this.prisma.categories.findFirst({
             where: {
                 id,
                 status: Status.active
@@ -35,6 +35,14 @@ export class CategoriesService {
 
     async createCategory(payload: CategoriesDto) {
         const categorySlug = slugify(payload.name)
+        const exists = await this.prisma.categories.findUnique({
+            where: {
+                slug: categorySlug
+            }
+        })
+        if (exists) {
+            throw new ConflictException("Category already exists")
+        }
         await this.prisma.categories.create({
             data: {
                 ...payload,
@@ -49,12 +57,21 @@ export class CategoriesService {
     }
 
     async updateCategory(id: number, payload: UpdateCategoriesDto) {
-        const existCategory = await this.prisma.categories.findUnique({
+        const existCategory = await this.prisma.categories.findFirst({
             where: {
                 id,
                 status: Status.active
             }
         })
+        if (payload.name) {
+            const slug = slugify(payload.name)
+            const exists = await this.prisma.categories.findUnique({
+                where: { slug }
+            })
+            if (exists) {
+                throw new ConflictException("This category already exists")
+            }
+        }
         if (!existCategory) throw new NotFoundException("Category not found")
 
         await this.prisma.categories.update({

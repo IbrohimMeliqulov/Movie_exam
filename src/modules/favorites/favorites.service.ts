@@ -9,7 +9,22 @@ export class FavoritesService {
 
 
     async getAllFavorites() {
-        const favorites = await this.prisma.favorites.findMany()
+        const favorites = await this.prisma.favorites.findMany({
+            where: { status: Status.active },
+            select: {
+                movies: {
+                    select: {
+                        id: true,
+                        title: true,
+                        slug: true,
+                        poster_url: true,
+                        release_year: true,
+                        rating: true,
+                        subscription_type: true
+                    }
+                }
+            }
+        })
 
         return {
             success: true,
@@ -19,7 +34,7 @@ export class FavoritesService {
 
 
     async getOwnFavorites(current_user: { id: number, role: Role }) {
-        const existUser = await this.prisma.users.findUnique({
+        const existUser = await this.prisma.users.findFirst({
             where: {
                 id: current_user.id,
                 role: current_user.role
@@ -27,15 +42,17 @@ export class FavoritesService {
         })
         if (!existUser) throw new NotFoundException("User not found")
 
-        const existFavorite = await this.prisma.favorites.findFirst({
+        const existFavorite = await this.prisma.favorites.findMany({
             where: { user_id: current_user.id },
             select: {
                 movies: {
                     select: {
+                        id: true,
                         title: true,
                         description: true,
                         release_year: true,
-                        rating: true
+                        rating: true,
+                        subscription_type: true
                     }
                 }
             }
@@ -49,9 +66,12 @@ export class FavoritesService {
     }
 
 
-    async createFavorite(payload: FavoritesDto) {
-        const existUser = await this.prisma.users.findUnique({
-            where: { id: payload.user_id }
+    async createFavorite(payload: FavoritesDto, current_user: { id: number, role: Role }) {
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id,
+                role: current_user.role
+            }
         })
         if (!existUser) throw new NotFoundException("user not found")
         const existMovie = await this.prisma.movies.findUnique({
@@ -59,7 +79,10 @@ export class FavoritesService {
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
         await this.prisma.favorites.create({
-            data: payload
+            data: {
+                ...payload,
+                user_id: current_user.id
+            }
         })
 
         return {
@@ -70,12 +93,18 @@ export class FavoritesService {
 
 
     async updateFavorites(id: number, payload: UpdateFavoritesDto, current_user: { id: number, role: Role }) {
-        const existFavorite = await this.prisma.favorites.findUnique({
-            where: { id }
+        const existFavorite = await this.prisma.favorites.findFirst({
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existFavorite) throw new NotFoundException("Favorite not found")
-        const existUser = await this.prisma.users.findUnique({
-            where: { id: payload.user_id }
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id,
+                role: current_user.role
+            }
         })
         if (!existUser) throw new NotFoundException("user not found")
         if (existUser.id != current_user.id && existUser.role != current_user.role) {
@@ -85,9 +114,6 @@ export class FavoritesService {
             where: { id: payload.movie_id }
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
-        await this.prisma.favorites.create({
-            data: payload
-        })
         await this.prisma.favorites.update({
             where: { id },
             data: payload
@@ -101,17 +127,27 @@ export class FavoritesService {
 
 
     async deleteFavorite(id: number, current_user: { id: number, role: Role }) {
-        const existFavorite = await this.prisma.favorites.findUnique({
-            where: { id }
+        const existFavorite = await this.prisma.favorites.findFirst({
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existFavorite) throw new NotFoundException("Favorite not found")
-        const existUser = await this.prisma.users.findUnique({
-            where: { id: current_user.id }
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id,
+                status: Status.active
+            }
         })
         if (!existUser) throw new NotFoundException("User not found")
         await this.prisma.favorites.update({
             where: { id },
             data: { status: Status.inactive }
         })
+        return {
+            success: true,
+            message: "favorites deleted"
+        }
     }
 }

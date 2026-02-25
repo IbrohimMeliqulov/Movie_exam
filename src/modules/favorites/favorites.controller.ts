@@ -44,9 +44,10 @@ export class FavoritesController {
     @Roles(Role.Admin, Role.User)
     @Post()
     createFavorite(
-        @Body() payload: FavoritesDto
+        @Body() payload: FavoritesDto,
+        @Req() req: Request
     ) {
-        return this.favoritesServices.createFavorite(payload)
+        return this.favoritesServices.createFavorite(payload, req['user'])
     }
 
     @ApiOperation({

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -8,6 +8,7 @@ import { Role } from '@prisma/client';
 import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { GetMoviesQueryDto } from './dto/pagination';
 
 
 @ApiBearerAuth()
@@ -22,8 +23,10 @@ export class MoviesController {
     @UseGuards(AuthGuard, RoleGuard)
     @Roles(Role.Admin, Role.Superadmin, Role.User)
     @Get()
-    getAllMovies() {
-        return this.moviesService.getAllMovies()
+    getAllMovies(
+        @Query() query: GetMoviesQueryDto
+    ) {
+        return this.moviesService.getAllMovies(query)
     }
 
 

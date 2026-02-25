@@ -61,7 +61,7 @@ export class MovieCategoriesController {
         @Body() payload: UpdateMoviesCategoriesDto,
         @Req() req: Request
     ) {
-        return this.movieCategories.updateMovieCategory(id, payload)
+        return this.movieCategories.updateMovieCategory(id, payload, req['user'])
     }
 
     @ApiOperation({

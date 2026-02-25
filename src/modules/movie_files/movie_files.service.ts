@@ -12,6 +12,18 @@ export class MovieFilesService {
         const movieFiles = await this.prisma.movie_files.findMany({
             where: {
                 status: Status.active
+            }, select: {
+                id: true,
+                quality: true,
+                language: true,
+                movies: {
+                    select: {
+                        id: true,
+                        title: true,
+                        slug: true,
+
+                    }
+                }
             }
         })
 
@@ -27,8 +39,11 @@ export class MovieFilesService {
     async createMovieFile(payload: MovieFilesDto, path: string, filename: string) {
         const quality = await detectionQuality(path)
 
-        const existMovie = await this.prisma.movies.findUnique({
-            where: { id: payload.movie_id }
+        const existMovie = await this.prisma.movies.findFirst({
+            where: {
+                id: payload.movie_id,
+                status: Status.active
+            }
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
         await this.prisma.movie_files.create({
@@ -47,18 +62,26 @@ export class MovieFilesService {
 
 
     async updateMovieFiles(id: number, payload: UpdateMovieFilesDto, path?: string, filename?: string) {
-        const existMovieFile = await this.prisma.movie_files.findUnique({
-            where: { id }
+        const existMovieFile = await this.prisma.movie_files.findFirst({
+            where: {
+                id,
+                status: Status.active
+            }
         })
         if (!existMovieFile) throw new NotFoundException("Movie File not found")
 
         if (payload.movie_id) {
-            const existMovie = await this.prisma.movies.findUnique({
-                where: { id: payload.movie_id }
+            const existMovie = await this.prisma.movies.findFirst({
+                where: {
+                    id: payload.movie_id,
+                    status: Status.active
+                }
             })
             if (!existMovie) throw new NotFoundException("Movie not found with this id")
         }
+
         let quality: Quality | undefined = undefined
+
         if (path) {
             quality = await detectionQuality(path)
         }
@@ -83,8 +106,11 @@ export class MovieFilesService {
 
 
     async deleteMovieFile(id: number) {
-        const existMovieFile = await this.prisma.movie_files.findUnique({
-            where: { id }
+        const existMovieFile = await this.prisma.movie_files.findFirst({
+            where: {
+                id,
+                status: Status.active
+            }
         })
 
         if (!existMovieFile) throw new NotFoundException("Movie file not found")
