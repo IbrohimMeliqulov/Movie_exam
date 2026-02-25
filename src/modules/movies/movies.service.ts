@@ -122,7 +122,7 @@ export class MoviesService {
                 files: movie.movieFiles.map(f => ({
                     url: `http://localhost:3000/uploads/movies/${f.file_url}`,
                     qality: f.quality,
-                    language: f.quality
+                    language: f.language
                 })),
                 categories: categories
             })
@@ -145,26 +145,83 @@ export class MoviesService {
 
 
     async getOneMovie(id: number, current_user: { id: number, role: Role }) {
-        const existMovie = await this.prisma.movies.findUnique({
+
+        const isAdminOrSuperadmin = current_user?.role === Role.Admin || current_user?.role === Role.Superadmin
+
+        let hasSubscription = false;
+        if (!isAdminOrSuperadmin && current_user) {
+            const subscription = await this.prisma.user_subscriptions.findFirst({
+                where: {
+                    user_id: current_user.id,
+                    status: Status.active,
+                    end_date: { gt: new Date() }
+                }
+            });
+            if (subscription) hasSubscription = true
+        }
+
+        const movie = await this.prisma.movies.findFirst({
             where: {
                 id,
-                status: Status.active
+                status: Status.active,
+                ...(!isAdminOrSuperadmin && !hasSubscription && { subscription_type: Subscription_type.free })
+            },
+            select: {
+                id: true,
+                title: true,
+                slug: true,
+                poster_url: true,
+                release_year: true,
+                rating: true,
+                subscription_type: true,
+                movieCategories: {
+                    where: { status: Status.active },
+                    select: {
+                        categories: { select: { name: true } }
+                    }
+                },
+                movieFiles: {
+                    where: { status: Status.active },
+                    select: {
+                        file_url: true,
+                        quality: true,
+                        language: true
+                    }
+                }
             }
         })
-        if (!existMovie) throw new NotFoundException("Movie not found")
-        const existCreator = await this.prisma.users.findUnique({
-            where: {
-                id: current_user.id,
-                status: Status.active
-            }
+
+        if (!movie) throw new NotFoundException("Movie not found")
+
+        await this.prisma.movies.update({
+            where: { id },
+            data: { view_count: { increment: 1 } }
         })
-        if (!existCreator) throw new ForbiddenException("You don't have a permission for that")
+        const categories: string[] = []
+        for (const mc of movie.movieCategories) {
+            categories.push(mc.categories?.name || '')
+        }
 
         return {
             success: true,
-            data: existMovie
+            data: {
+                id: movie.id,
+                title: movie.title,
+                slug: movie.slug,
+                poster_url: movie.poster_url,
+                release_year: movie.release_year,
+                rating: movie.rating,
+                subscription_type: movie.subscription_type,
+                files: movie.movieFiles.map(f => ({
+                    url: `http://localhost:3000/uploads/movies/${f.file_url}`,
+                    quality: f.quality,
+                    language: f.language
+                })),
+                categories
+            }
         }
     }
+
 
 
 
@@ -188,7 +245,6 @@ export class MoviesService {
                 poster_url: filename ?? ""
             }
         })
-
         return {
             success: true,
             message: "Movie created"
