@@ -1,10 +1,14 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Role, Status, Subscription_type } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
 import { slugify } from 'src/core/utils/slugify';
 import { Decimal } from '@prisma/client/runtime/client';
 import { GetMoviesQueryDto } from './dto/pagination';
+import * as ffmpeg from "fluent-ffmpeg"
+import { metadata } from 'reflect-metadata/no-conflict';
+import path, { resolve } from 'path';
+import { rejects } from 'assert';
 
 @Injectable()
 export class MoviesService {
@@ -197,6 +201,41 @@ export class MoviesService {
             where: { id },
             data: { view_count: { increment: 1 } }
         })
+
+
+
+        if (current_user) {
+
+
+            const duration = 20;
+            const total = 120;
+            const percentage = (duration / total) * 100;
+
+
+            await this.prisma.watch_history.upsert({
+                where: {
+                    user_id_movie_id: {
+                        user_id: current_user.id,
+                        movie_id: movie.id
+                    }
+                },
+                update: {
+                    last_watched: new Date(),
+                    watched_duration: duration,
+                    watched_percentage: percentage,
+                    status: Status.active,
+                },
+                create: {
+                    user_id: current_user.id,
+                    movie_id: movie.id,
+                    watched_duration: duration,
+                    watched_percentage: percentage,
+                    status: Status.active
+                }
+            })
+        }
+
+
         const categories: string[] = []
         for (const mc of movie.movieCategories) {
             categories.push(mc.categories?.name || '')
@@ -269,6 +308,7 @@ export class MoviesService {
             }
         })
         if (!existMovie) throw new NotFoundException("Movie not found")
+
         if (existMovie?.creaters.id !== current_user.id && existMovie.creaters.role !== current_user.role) {
             throw new ForbiddenException("You don't have a permission")
         }
