@@ -49,10 +49,10 @@ export class PaymentsController {
 
 
     @ApiOperation({
-        summary: `${Role.User}`
+        summary: `${Role.User},${Role.Admin},${Role.Superadmin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.User, Role.Admin)
+    @Roles(Role.User, Role.Admin, Role.Superadmin)
     @Put(":id")
     updatePayment(
         @Param("id", ParseIntPipe) id: number,

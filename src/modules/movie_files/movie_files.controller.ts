@@ -27,6 +27,18 @@ export class MovieFilesController {
 
 
 
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Get("single/:id")
+    getOneMovieFile(
+        @Param("id", ParseIntPipe) id: number
+    ) {
+        return this.movieFiles.getOneMovieFile(id)
+    }
+
 
 
     @ApiConsumes("multipart/form-data")
