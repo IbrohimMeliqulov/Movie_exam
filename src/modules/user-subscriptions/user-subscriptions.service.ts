@@ -20,6 +20,30 @@ export class UserSubscriptionsService {
         }
     }
 
+    async getInactiveSubscriptions() {
+        const inactiveSubscriptions = await this.prisma.user_subscriptions.findMany({
+            where: {
+                status: Status.inactive
+            },
+            select: {
+                id: true,
+                users: {
+                    select: {
+                        username: true,
+                        status: true,
+                        email: true,
+                    }
+                }
+            }
+        })
+
+        return {
+            success: true,
+            data: inactiveSubscriptions
+        }
+    }
+
+
 
 
     async getOwnSubscription(current_user: { id: number, role: Role }) {

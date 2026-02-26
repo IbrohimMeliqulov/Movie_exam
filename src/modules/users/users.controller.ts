@@ -30,6 +30,16 @@ export class UsersController {
 
 
     @ApiOperation({
+        summary: `${Role.Superadmin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Superadmin)
+    @Get("inactive")
+    getInactiveUsers() {
+        return this.userService.getInactiveUsers()
+    }
+
+    @ApiOperation({
         summary: `${Role.Superadmin},${Role.Admin}`
     })
     @UseGuards(AuthGuard, RoleGuard)

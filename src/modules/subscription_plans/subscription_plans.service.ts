@@ -9,8 +9,23 @@ export class SubscriptionPlansService {
 
     async getAllSubscriptions() {
         const subscriptions = await this.prisma.subscription_plans.findMany({
-            where: { status: Status.active }
+            where: { status: Status.active, isActive: true }
         })
+        return {
+            success: true,
+            data: subscriptions
+        }
+    }
+
+
+    async getInactivePlans() {
+        const subscriptions = await this.prisma.subscription_plans.findMany({
+            where: {
+                status: Status.inactive,
+                isActive: false
+            }
+        })
+
         return {
             success: true,
             data: subscriptions
@@ -22,7 +37,8 @@ export class SubscriptionPlansService {
         const existSubscription = await this.prisma.subscription_plans.findFirst({
             where: {
                 id,
-                status: Status.active
+                status: Status.active,
+                isActive: true
             }
         })
 
@@ -49,10 +65,11 @@ export class SubscriptionPlansService {
 
 
     async updateSubscription(id: number, payload: UpdateSubscriptionPlansDto) {
-        const existSubscription = await this.prisma.subscription_plans.findUnique({
+        const existSubscription = await this.prisma.subscription_plans.findFirst({
             where: {
                 id,
-                status: Status.active
+                status: Status.active,
+                isActive: true
             }
         })
         if (!existSubscription) throw new NotFoundException("Subscription not found")
@@ -75,16 +92,17 @@ export class SubscriptionPlansService {
 
 
     async deleteSubscription(id: number) {
-        const existSubscription = await this.prisma.subscription_plans.findUnique({
+        const existSubscription = await this.prisma.subscription_plans.findFirst({
             where: {
                 id,
-                status: Status.active
+                status: Status.active,
+                isActive: true,
             }
         })
 
         if (!existSubscription) throw new NotFoundException("Subscription not found")
 
-        await this.prisma.subscription_plans.update({ where: { id }, data: { status: Status.inactive } })
+        await this.prisma.subscription_plans.update({ where: { id }, data: { status: Status.inactive, isActive: false } })
         return {
             success: true,
             message: "Subscription deleted"

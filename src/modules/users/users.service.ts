@@ -5,10 +5,13 @@ import { Role, Status } from '@prisma/client';
 import { hashPassword } from 'src/core/utils/bcrypt';
 import * as fs from 'fs';
 import path, { join } from 'path';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService,
+        private jwtService: JwtService
+    ) { }
 
     async createUser(payload: CreateUserDto, file?: Express.Multer.File) {
         const existUser = await this.prisma.users.findFirst({
@@ -26,7 +29,8 @@ export class UsersService {
             filename = new Date().getTime() + "." + file.mimetype.split("/")[1]
             await fs.writeFileSync(join("./src/uploads/photos", filename), file.buffer)
         }
-        await this.prisma.users.create({
+
+        const user = await this.prisma.users.create({
             data: {
                 ...payload,
                 password: hashPass,
@@ -34,9 +38,13 @@ export class UsersService {
                 role: Role.User
             }
         })
+
+        const accessToken = await this.jwtService.sign({ id: user.id, email: user.email, role: user.role })
+
         return {
             success: true,
-            message: "You registered"
+            message: "You registered",
+            toke: accessToken
         }
     }
 
@@ -48,6 +56,38 @@ export class UsersService {
             where: {
                 role: Role.User,
                 status: Status.active
+            },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                avatar_url: true,
+            }
+        })
+
+        const results: any[] = []
+        for (const user of users) {
+            results.push({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                avatar_url: user.avatar_url ? `http://localhost:3000/uploads/photos/${user.avatar_url}` : null
+            })
+        }
+
+        return {
+            success: true,
+            data: results
+        }
+    }
+
+
+
+    async getInactiveUsers() {
+        const users = await this.prisma.users.findMany({
+            where: {
+                role: Role.User,
+                status: Status.inactive
             },
             select: {
                 id: true,

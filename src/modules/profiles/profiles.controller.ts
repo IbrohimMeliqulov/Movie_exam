@@ -24,6 +24,16 @@ export class ProfilesController {
     }
 
 
+    @ApiOperation({
+        summary: `${Role.Admin},${Role.Superadmin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.User, Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactiveProfiles() {
+        return this.profileService.getInactiveProfiles()
+    }
+
 
 
 

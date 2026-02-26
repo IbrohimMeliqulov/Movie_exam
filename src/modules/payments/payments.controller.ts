@@ -24,6 +24,20 @@ export class PaymentsController {
         return this.paymentsService.getAllPayments(req['user'])
     }
 
+
+    @ApiOperation({
+        summary: `$${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactivePayments() {
+        return this.paymentsService.getInactivePayments()
+    }
+
+
+
+
     @ApiOperation({
         summary: `${Role.User},${Role.Superadmin},${Role.Admin}`
     })

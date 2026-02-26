@@ -25,6 +25,17 @@ export class CategoriesController {
     }
 
 
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactiveCategories() {
+        return this.categoriesService.getInactiveCategories()
+    }
+
+
 
     @ApiOperation({
         summary: `${Role.Superadmin},${Role.Admin}`

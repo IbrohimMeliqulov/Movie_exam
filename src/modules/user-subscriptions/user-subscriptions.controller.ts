@@ -23,6 +23,17 @@ export class UserSubscriptionsController {
         return this.userSubscriptions.getAllUserSubscriptions()
     }
 
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Superadmin, Role.Admin)
+    @Get("inactive")
+    getInactiveSubscriptions() {
+        return this.userSubscriptions.getInactiveSubscriptions()
+    }
+
+
 
     @ApiOperation({
         summary: `${Role.Superadmin},${Role.Admin}`

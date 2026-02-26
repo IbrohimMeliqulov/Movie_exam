@@ -32,6 +32,19 @@ export class FavoritesService {
         }
     }
 
+    async getInactiveFavorites() {
+        const inactiveFavorites = await this.prisma.favorites.findMany({
+            where: { status: Status.inactive }
+        })
+
+        return {
+            success: true,
+            data: inactiveFavorites
+        }
+    }
+
+
+
 
     async getOwnFavorites(current_user: { id: number, role: Role }) {
         const existUser = await this.prisma.users.findFirst({

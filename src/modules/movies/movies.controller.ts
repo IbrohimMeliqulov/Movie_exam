@@ -31,6 +31,18 @@ export class MoviesController {
     }
 
 
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactiveMovies() {
+        return this.moviesService.getInactiveMovies()
+    }
+
+
     @ApiOperation({
         summary: `${Role.Superadmin},${Role.Admin},${Role.User}`
     })

@@ -36,6 +36,19 @@ export class MovieCategoriesService {
         }
     }
 
+
+    async getInactiveMovieCategories() {
+        const inactiveMovieCategories = await this.prisma.movie_categories.findMany({
+            where: { status: Status.inactive }
+        })
+
+        return {
+            success: true,
+            data: inactiveMovieCategories
+        }
+    }
+
+
     async getOneMoviesCategory(id: number) {
         const existMovieCategory = await this.prisma.movie_categories.findFirst({
             where: {
