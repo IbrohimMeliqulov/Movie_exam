@@ -34,6 +34,18 @@ export class MovieFilesService {
     }
 
 
+    async getInactiveMovieFiles() {
+        const inactiveMovieFiles = await this.prisma.movie_files.findMany({
+            where: { status: Status.inactive }
+        })
+
+        return {
+            success: true,
+            data: inactiveMovieFiles
+        }
+    }
+
+
     async getOneMovieFile(id: number) {
         const existMovieFile = await this.prisma.movie_files.findFirst({
             where: {

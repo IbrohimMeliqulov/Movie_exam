@@ -32,6 +32,16 @@ export class AdminsController {
     })
     @UseGuards(AuthGuard, RoleGuard)
     @Roles(Role.Superadmin)
+    @Get("inactive")
+    getInactiveAdmins() {
+        return this.adminService.getInactiveAdmins()
+    }
+
+    @ApiOperation({
+        summary: `${Role.Superadmin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Superadmin)
     @Get("single/:id")
     getSingleAdmin(
         @Param("id", ParseIntPipe) id: number

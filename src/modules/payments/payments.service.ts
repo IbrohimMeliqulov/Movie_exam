@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { PaymentDto, UpdatePaymentDto } from './dto/create.dto';
-import { Role, Status } from '@prisma/client';
+import { Payment_status, Role, Status } from '@prisma/client';
 
 @Injectable()
 export class PaymentsService {
@@ -59,6 +59,20 @@ export class PaymentsService {
         }
     }
 
+
+    async getInactivePayments() {
+        const inactivePayments = await this.prisma.payments.findMany({
+            where: {
+                status: Status.inactive,
+                payment_status: Payment_status.failed
+            }
+        })
+
+        return {
+            success: true,
+            data: inactivePayments
+        }
+    }
 
 
     async getSinglePayment(id: number) {

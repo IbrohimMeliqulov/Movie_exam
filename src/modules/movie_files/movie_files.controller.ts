@@ -26,6 +26,18 @@ export class MovieFilesController {
     }
 
 
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactiveMovieFiles() {
+        return this.movieFiles.getInactiveMovieFiles()
+    }
+
+
+
 
     @ApiOperation({
         summary: `${Role.Superadmin},${Role.Admin}`

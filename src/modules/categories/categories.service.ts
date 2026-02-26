@@ -19,6 +19,22 @@ export class CategoriesService {
         }
     }
 
+    async getInactiveCategories() {
+        const inactiveCategories = await this.prisma.categories.findMany({
+            where: {
+                status: Status.inactive
+            }
+        })
+
+
+        return {
+            success: true,
+            data: inactiveCategories
+        }
+    }
+
+
+
     async getOneCategory(id: number) {
         const existCategory = await this.prisma.categories.findFirst({
             where: {

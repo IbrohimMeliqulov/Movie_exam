@@ -18,6 +18,18 @@ export class ProfilesService {
         }
     }
 
+    async getInactiveProfiles() {
+        const profiles = await this.prisma.profiles.findMany({
+            where: { status: Status.inactive }
+        })
+
+        return {
+            success: true,
+            data: profiles
+        }
+    }
+
+
 
     async getProfile(current_user: { id: number, role: string }) {
         const existProfile = await this.prisma.profiles.findFirst({
@@ -26,10 +38,16 @@ export class ProfilesService {
                 status: Status.active
             },
             select: {
+                users: {
+                    select: {
+                        username: true,
+                        email: true,
+                    }
+                },
                 id: true,
                 full_name: true,
                 phone: true,
-                country: true
+                country: true,
             }
         })
 

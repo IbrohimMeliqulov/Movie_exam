@@ -29,6 +29,16 @@ export class MovieCategoriesController {
     })
     @UseGuards(AuthGuard, RoleGuard)
     @Roles(Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactiveMovieCategories() {
+        return this.movieCategories.getInactiveMovieCategories()
+    }
+
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
     @Get(":id")
     getOneMovieCategory(
         @Param("id", ParseIntPipe) id: number

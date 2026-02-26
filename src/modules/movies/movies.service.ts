@@ -156,6 +156,19 @@ export class MoviesService {
     }
 
 
+    async getInactiveMovies() {
+        const inactiveMovies = await this.prisma.movies.findMany({
+            where: { status: Status.inactive }
+        })
+
+
+        return {
+            success: true,
+            data: inactiveMovies
+        }
+    }
+
+
 
     async getOneMovie(id: number, current_user: { id: number, role: Role }) {
 

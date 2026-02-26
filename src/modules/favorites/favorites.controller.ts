@@ -20,7 +20,17 @@ export class FavoritesController {
     @Roles(Role.Admin, Role.Superadmin)
     @Get()
     getAllFavorites() {
+        return this.favoritesServices.getAllFavorites()
+    }
 
+    @ApiOperation({
+        summary: `${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.Admin, Role.Superadmin)
+    @Get("inactive")
+    getInactiveFavorites() {
+        return this.favoritesServices.getInactiveFavorites()
     }
 
 
@@ -49,6 +59,7 @@ export class FavoritesController {
     ) {
         return this.favoritesServices.createFavorite(payload, req['user'])
     }
+
 
     @ApiOperation({
         summary: `${Role.User},${Role.Admin}`

@@ -29,6 +29,19 @@ export class AdminsService {
         }
     }
 
+    async getInactiveAdmins() {
+        const admins = await this.prisma.users.findMany({
+            where: {
+                role: Role.Admin,
+                status: Status.inactive
+            }
+        })
+        return {
+            success: true,
+            data: admins
+        }
+    }
+
 
     async getSingleAdmin(id: number) {
         const existAdmin = await this.prisma.users.findFirst({
