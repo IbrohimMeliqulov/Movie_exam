@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { Payment_method } from "@prisma/client"
-import { Decimal } from "@prisma/client/runtime/client"
+import { Payment_method, Payment_status } from "@prisma/client"
 import { Transform, Type } from "class-transformer"
 import { IsArray, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from "class-validator"
 
@@ -30,31 +29,8 @@ export class PaymentDto {
 
 
 export class UpdatePaymentDto {
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
+    @ApiPropertyOptional({ enum: Payment_status, enumName: "Payment_status" })
     @IsOptional()
-    @IsNumber()
-    user_subscription_id?: number
-
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @Min(0)
-    @Type(() => Number)
-    amount?: number
-
-    @ApiPropertyOptional({ enum: Payment_method, enumName: "Payment_method" })
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
-    @IsEnum(Payment_method)
-    payment_method?: Payment_method
-
-
-    @ApiPropertyOptional()
-    @Transform(({ value }) => value === '' ? undefined : value)
-    @IsOptional()
-    @IsArray({ each: true })
-    @IsString()
-    payment_details?: string[]
+    @IsEnum(Payment_status)
+    payment_status?: Payment_status
 }

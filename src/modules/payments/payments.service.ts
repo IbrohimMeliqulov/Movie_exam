@@ -1,34 +1,60 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { PaymentDto, UpdatePaymentDto } from './dto/create.dto';
-import { Role } from '@prisma/client';
+import { Role, Status } from '@prisma/client';
 
 @Injectable()
 export class PaymentsService {
     constructor(private prisma: PrismaService) { }
 
-    async getAllPayments() {
-        const payments = await this.prisma.payments.findMany({
-            include: {
-                user_subscriptions: {
-                    select: {
-                        start_date: true,
-                        end_date: true,
-                        users: {
-                            select: {
-                                username: true,
-                                email: true,
-
-                            }
-                        }
-                    }
-                }
+    async getAllPayments(current_user: { id: number, role: Role }) {
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id
             }
         })
 
-        return {
-            success: true,
-            data: payments
+        if (!existUser) throw new NotFoundException("user not found")
+
+        if (existUser.role == Role.Admin || existUser.role == Role.Superadmin) {
+            const payments = await this.prisma.payments.findMany({
+                where: { status: Status.active },
+                select: {
+                    user_subscription_id: true,
+                    payment_status: true,
+                    payment_method: true,
+                    payment_details: true,
+                    amount: true,
+                    status: true,
+                    user_subscriptions: {
+                        select: {
+                            user_id: true
+                        }
+                    }
+                }
+            })
+
+            return {
+                success: true,
+                data: payments
+            }
+        } else if (existUser.role == Role.User) {
+            const subscriptions = await this.prisma.user_subscriptions.findMany({
+                where: {
+                    user_id: existUser.id,
+                    status: Status.active
+                },
+                include: {
+                    payments: true
+                }
+            })
+            const allPayments = subscriptions.flatMap(sub => sub.payments)
+
+
+            return {
+                success: true,
+                data: allPayments
+            }
         }
     }
 
@@ -97,30 +123,26 @@ export class PaymentsService {
 
 
     async updatePayment(id: number, payload: UpdatePaymentDto, current_user: { id: number, role: Role }) {
-        const existPayment = await this.prisma.payments.findUnique({
-            where: { id },
-            select: {
-                user_subscriptions: {
-                    select: {
-                        user_id: true
-                    }
-                }
-            }
-        })
-        if (!existPayment) throw new NotFoundException("Payment not found")
-
-        if (existPayment.user_subscriptions.user_id != current_user.id) {
-            throw new ForbiddenException("You don't have a permission to update this payment")
+        if (current_user.role !== Role.Admin) {
+            throw new ForbiddenException("Only admin can update payment status")
         }
+
+        const existPayment = await this.prisma.payments.findUnique({
+            where: { id }
+        })
+
+        if (!existPayment) throw new NotFoundException("Payment not found")
 
         await this.prisma.payments.update({
             where: { id },
-            data: payload
+            data: {
+                payment_status: payload.payment_status
+            }
         })
 
         return {
             success: true,
-            message: "Payment updated"
+            message: `Payment status updated`
         }
     }
 

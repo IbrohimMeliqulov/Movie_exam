@@ -6,11 +6,6 @@ export class UserSubscriptionsDto {
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
-    user_id: number
-
-    @ApiProperty()
-    @IsNumber()
-    @Type(() => Number)
     plan_id: number
 }
 

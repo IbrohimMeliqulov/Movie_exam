@@ -6,11 +6,6 @@ export class ReviewsDto {
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
-    user_id: number
-
-    @ApiProperty()
-    @IsNumber()
-    @Type(() => Number)
     movie_id: number
 
     @ApiProperty()

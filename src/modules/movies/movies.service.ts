@@ -298,7 +298,9 @@ export class MoviesService {
             }
         })
         if (!existUser) throw new NotFoundException("User not found")
+
         const slugTitle = slugify(payload.title)
+
         await this.prisma.movies.create({
             data: {
                 ...payload,

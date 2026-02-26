@@ -87,24 +87,36 @@ export class ReviewsService {
         }
     }
 
-    async createReview(paylaod: ReviewsDto) {
-        const existUser = await this.prisma.users.findUnique({
-            where: { id: paylaod.user_id }
+    async createReview(paylaod: ReviewsDto, current_user: { id: number, role: Role }) {
+
+        const existUser = await this.prisma.users.findFirst({
+            where: {
+                id: current_user.id,
+                status: Status.active
+            }
         })
+
         if (!existUser) throw new NotFoundException("User not found")
 
-        const existMovie = await this.prisma.movies.findUnique({
-            where: { id: paylaod.movie_id }
+        const existMovie = await this.prisma.movies.findFirst({
+            where: {
+                id: paylaod.movie_id,
+                status: Status.active
+            }
         })
 
         if (!existMovie) throw new NotFoundException("Movie not found")
 
         await this.prisma.reviews.create({
-            data: paylaod
+            data: {
+                ...paylaod,
+                user_id: current_user.id
+            }
         })
+
         return {
             success: true,
-            message: "Review deleted"
+            message: "Review recorded"
         }
     }
 
@@ -116,6 +128,8 @@ export class ReviewsService {
                 status: Status.active
             }
         })
+
+        if (!existReview) throw new NotFoundException("Review not found")
 
         const existCurrentUser = await this.prisma.users.findUnique({
             where: {
