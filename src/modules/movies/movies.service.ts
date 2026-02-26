@@ -1,14 +1,10 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Role, Status, Subscription_type } from '@prisma/client';
+import { Payment_status, Prisma, Role, Status, Subscription_type } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { MoviesDto, UpdateMoviesDto } from './dto/create.dto';
 import { slugify } from 'src/core/utils/slugify';
 import { Decimal } from '@prisma/client/runtime/client';
 import { GetMoviesQueryDto } from './dto/pagination';
-import * as ffmpeg from "fluent-ffmpeg"
-import { metadata } from 'reflect-metadata/no-conflict';
-import path, { resolve } from 'path';
-import { rejects } from 'assert';
 
 @Injectable()
 export class MoviesService {
@@ -27,6 +23,7 @@ export class MoviesService {
         if (!isAdminOrSuperadmin) {
 
             let hasSubscription = false;
+
             if (current_user) {
                 const subscription = await this.prisma.user_subscriptions.findFirst({
                     where: {
@@ -37,7 +34,17 @@ export class MoviesService {
                 });
 
                 if (subscription) {
-                    hasSubscription = true
+                    const payment = await this.prisma.payments.findFirst({
+                        where: {
+                            user_subscription_id: subscription.id,
+                            payment_status: Payment_status.completed
+
+                        }
+                    })
+
+                    if (payment) {
+                        hasSubscription = true
+                    }
                 }
             }
 
@@ -85,6 +92,7 @@ export class MoviesService {
                 release_year: true,
                 rating: true,
                 subscription_type: true,
+                view_count: true,
                 movieCategories: {
                     where: { status: Status.active },
                     select: {
@@ -119,6 +127,7 @@ export class MoviesService {
                 id: movie.id,
                 title: movie.title,
                 slug: movie.slug,
+                view_count: movie.view_count,
                 poster_url: movie.poster_url,
                 release_year: movie.release_year,
                 rating: movie.rating,
@@ -161,7 +170,20 @@ export class MoviesService {
                     end_date: { gt: new Date() }
                 }
             });
-            if (subscription) hasSubscription = true
+
+            if (subscription) {
+                const payment = await this.prisma.payments.findFirst({
+                    where: {
+                        user_subscription_id: subscription.id,
+                        payment_status: Payment_status.completed
+
+                    }
+                })
+
+                if (payment) {
+                    hasSubscription = true
+                }
+            }
         }
 
         const movie = await this.prisma.movies.findFirst({
@@ -177,6 +199,7 @@ export class MoviesService {
                 poster_url: true,
                 release_year: true,
                 rating: true,
+                view_count: true,
                 subscription_type: true,
                 movieCategories: {
                     where: { status: Status.active },
@@ -249,6 +272,7 @@ export class MoviesService {
                 slug: movie.slug,
                 poster_url: movie.poster_url,
                 release_year: movie.release_year,
+                view_count: movie.view_count,
                 rating: movie.rating,
                 subscription_type: movie.subscription_type,
                 files: movie.movieFiles.map(f => ({

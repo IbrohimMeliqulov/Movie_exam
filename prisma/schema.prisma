@@ -160,6 +160,8 @@ model Movie_categories {
   status      Status     @default(active)
   movies      Movies     @relation(fields: [movie_id], references: [id])
   categories  Categories @relation(fields: [category_id], references: [id])
+
+  @@unique([movie_id, category_id])
 }
 
 model Movie_files {
@@ -192,6 +194,8 @@ model Reviews {
   created_at DateTime @default(now())
   users      Users    @relation(fields: [user_id], references: [id])
   movies     Movies   @relation(fields: [movie_id], references: [id])
+
+  @@unique([movie_id, user_id])
 }
 
 model Watch_history {

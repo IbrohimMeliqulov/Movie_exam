@@ -24,6 +24,20 @@ export class SubscriptionPlansController {
     }
 
 
+    @ApiOperation({
+        summary: `${Role.User},${Role.Superadmin},${Role.Admin}`
+    })
+    @UseGuards(AuthGuard, RoleGuard)
+    @Roles(Role.User, Role.Admin, Role.Superadmin)
+    @Get("sinlge/:id")
+    getOneSubscription(
+        @Param("id", ParseIntPipe) id: number
+    ) {
+        return this.subscriptionService.getOneSubscription(id)
+    }
+
+
+
 
     @ApiOperation({
         summary: `${Role.Superadmin}`

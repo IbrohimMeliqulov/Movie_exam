@@ -18,6 +18,24 @@ export class SubscriptionPlansService {
     }
 
 
+    async getOneSubscription(id: number) {
+        const existSubscription = await this.prisma.subscription_plans.findFirst({
+            where: {
+                id,
+                status: Status.active
+            }
+        })
+
+        if (!existSubscription) throw new NotFoundException("Subscription not found")
+
+        return {
+            success: true,
+            data: existSubscription
+        }
+    }
+
+
+
     async createSubscription(payload: SubscriptionPlansDto) {
         await this.prisma.subscription_plans.create({
             data: payload
