@@ -31,7 +31,7 @@ export class AdminsService {
 
 
     async getSingleAdmin(id: number) {
-        const existAdmin = await this.prisma.users.findUnique({
+        const existAdmin = await this.prisma.users.findFirst({
             where: {
                 id,
                 role: Role.Admin,
@@ -64,7 +64,9 @@ export class AdminsService {
                 ]
             }
         })
+
         if (existAdmin) throw new ConflictException("Admin already exists")
+
         await this.prisma.users.create({
             data: {
                 ...payload,
@@ -84,7 +86,7 @@ export class AdminsService {
 
     async updateAdmin(id: number, payload: UpdateAdminDto, current_user: { id: number, role: Role }, filename: string) {
         const { password, ...rest } = payload
-        const existAdmin = await this.prisma.users.findUnique({
+        const existAdmin = await this.prisma.users.findFirst({
             where: {
                 id,
                 role: Role.Admin,
@@ -108,7 +110,7 @@ export class AdminsService {
 
 
     async deleteAdmin(id: number) {
-        const existAdmin = await this.prisma.users.findUnique({
+        const existAdmin = await this.prisma.users.findFirst({
             where: {
                 id,
                 role: Role.Admin,

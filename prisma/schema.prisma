@@ -115,7 +115,7 @@ model Payments {
   payment_method       Payment_method
   payment_details      Json
   status               Status             @default(active)
-  payment_status       Payment_status     @default(completed)
+  payment_status       Payment_status     @default(pending)
   created_at           DateTime           @default(now())
   user_subscriptions   User_subscriptions @relation(fields: [user_subscription_id], references: [id])
 }

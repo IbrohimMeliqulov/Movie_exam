@@ -69,16 +69,17 @@ export class UserSubscriptionsService {
 
 
 
-    async createUserSubscription(payload: UserSubscriptionsDto) {
+    async createUserSubscription(payload: UserSubscriptionsDto, current_user: { id: number, role: Role }) {
         const existUser = await this.prisma.users.findUnique({
             where: {
-                id: payload.user_id,
+                id: current_user.id,
+                role: current_user.role,
                 status: Status.active
             }
         })
         if (!existUser) throw new NotFoundException("User not found")
 
-        const existSubscription = await this.prisma.subscription_plans.findUnique({
+        const existSubscription = await this.prisma.subscription_plans.findFirst({
             where: {
                 id: payload.plan_id,
                 status: Status.active
@@ -88,11 +89,13 @@ export class UserSubscriptionsService {
         const start_date = new Date()
 
         const end_date = new Date(start_date)
+
         end_date.setDate(end_date.getDate() + existSubscription.duration_days)
+
         await this.prisma.user_subscriptions.create({
             data:
             {
-                user_id: payload.user_id,
+                user_id: current_user.id,
                 plan_id: payload.plan_id,
                 start_date,
                 end_date

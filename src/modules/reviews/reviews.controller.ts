@@ -46,9 +46,10 @@ export class ReviewsController {
     @Roles(Role.User)
     @Post()
     createReview(
-        @Body() payload: ReviewsDto
+        @Body() payload: ReviewsDto,
+        @Req() req: Request
     ) {
-        return this.reviewService.createReview(payload)
+        return this.reviewService.createReview(payload, req['user'])
     }
 
 

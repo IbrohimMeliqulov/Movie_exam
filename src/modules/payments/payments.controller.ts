@@ -13,13 +13,15 @@ export class PaymentsController {
     constructor(private readonly paymentsService: PaymentsService) { }
 
     @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
+        summary: `$${Role.Superadmin},${Role.Admin},${Role.User}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Admin, Role.Superadmin)
+    @Roles(Role.Admin, Role.Superadmin, Role.User)
     @Get()
-    getAllPayments() {
-        return this.paymentsService.getAllPayments()
+    getAllPayments(
+        @Req() req: Request
+    ) {
+        return this.paymentsService.getAllPayments(req['user'])
     }
 
     @ApiOperation({

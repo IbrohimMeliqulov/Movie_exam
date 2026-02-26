@@ -43,9 +43,10 @@ export class UserSubscriptionsController {
     @Roles(Role.Superadmin, Role.Admin, Role.User)
     @Post()
     createUserSubscription(
-        @Body() payload: UserSubscriptionsDto
+        @Body() payload: UserSubscriptionsDto,
+        @Req() req: Request
     ) {
-        return this.userSubscriptions.createUserSubscription(payload)
+        return this.userSubscriptions.createUserSubscription(payload, req['user'])
     }
 
 
