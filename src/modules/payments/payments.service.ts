@@ -20,6 +20,7 @@ export class PaymentsService {
             const payments = await this.prisma.payments.findMany({
                 where: { status: Status.active },
                 select: {
+                    id: true,
                     user_subscription_id: true,
                     payment_status: true,
                     payment_method: true,
@@ -123,7 +124,7 @@ export class PaymentsService {
 
 
     async updatePayment(id: number, payload: UpdatePaymentDto, current_user: { id: number, role: Role }) {
-        if (current_user.role !== Role.Admin) {
+        if (current_user.role !== Role.Admin && current_user.role !== Role.Superadmin) {
             throw new ForbiddenException("Only admin can update payment status")
         }
 

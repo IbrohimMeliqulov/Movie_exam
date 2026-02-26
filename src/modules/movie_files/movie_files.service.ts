@@ -34,6 +34,34 @@ export class MovieFilesService {
     }
 
 
+    async getOneMovieFile(id: number) {
+        const existMovieFile = await this.prisma.movie_files.findFirst({
+            where: {
+                id,
+                status: Status.active
+            },
+            select: {
+                id: true,
+                quality: true,
+                language: true,
+                movies: {
+                    select: {
+                        id: true,
+                        title: true,
+                        slug: true,
+
+                    }
+                }
+            }
+        })
+        if (!existMovieFile) throw new NotFoundException("Movie file not found")
+
+        return {
+            success: true,
+            data: existMovieFile
+        }
+    }
+
 
 
     async createMovieFile(payload: MovieFilesDto, path: string, filename: string) {
