@@ -28,17 +28,6 @@ export class ReviewsDto {
 
 
 export class UpdateReviewsDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Type(() => Number)
-    user_id?: number
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    @Type(() => Number)
-    movie_id?: number
 
     @ApiPropertyOptional()
     @IsOptional()

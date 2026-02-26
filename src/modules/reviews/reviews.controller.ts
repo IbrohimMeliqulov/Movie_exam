@@ -14,33 +14,36 @@ export class ReviewsController {
 
 
     @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
+        summary: `${Role.Superadmin},${Role.Admin},${Role.User}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Admin, Role.Superadmin)
+    @Roles(Role.Admin, Role.Superadmin, Role.User)
     @Get()
-    getAllReviewz() {
-        return this.reviewService.getAllReviews()
+    getAllReviewz(
+        @Req() req: Request
+    ) {
+        return this.reviewService.getAllReviews(req['user'])
     }
 
 
     @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
+        summary: `${Role.Superadmin},${Role.Admin}`
     })
     @UseGuards(AuthGuard, RoleGuard)
     @Roles(Role.Admin, Role.Superadmin)
-    @Get(":id")
+    @Get("single:id")
     getOwnReviews(
         @Param("id", ParseIntPipe) id: number
     ) {
         return this.reviewService.getOneReview(id)
     }
 
+
     @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
+        summary: `${Role.User}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Admin, Role.Superadmin)
+    @Roles(Role.User)
     @Post()
     createReview(
         @Body() payload: ReviewsDto
@@ -49,31 +52,28 @@ export class ReviewsController {
     }
 
 
+
     @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
+        summary: `${Role.User}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Admin, Role.Superadmin)
+    @Roles(Role.User)
     @Put(":id")
     updateReview(
         @Param("id", ParseIntPipe) id: number,
         @Body() payload: UpdateReviewsDto,
         @Req() req: Request) {
         return this.reviewService.updateReview(id, payload, req['user'])
-    } @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
-    })
-    @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Admin, Role.Superadmin)
-    @Get()
+    }
+
 
 
 
     @ApiOperation({
-        summary: `$${Role.Superadmin},${Role.Admin}`
+        summary: `,${Role.Admin},${Role.User}`
     })
     @UseGuards(AuthGuard, RoleGuard)
-    @Roles(Role.Admin, Role.Superadmin)
+    @Roles(Role.Admin, Role.User)
     @Delete(":id")
     deleteReview(
         @Param("id", ParseIntPipe) id: number,
@@ -81,9 +81,4 @@ export class ReviewsController {
     ) {
         return this.reviewService.deleteReview(id, req['user'])
     }
-
-
-
-
-
 }

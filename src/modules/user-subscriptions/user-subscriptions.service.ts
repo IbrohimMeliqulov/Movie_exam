@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { UpdateUserSubscriptionsDto, UserSubscriptionsDto } from './dto/create.dto';
+import { UpdateUserSubscriptionDto, UserSubscriptionsDto } from './dto/create.dto';
 import { Role, Status } from '@prisma/client';
 import { useContainer } from 'class-validator';
 
@@ -20,6 +20,8 @@ export class UserSubscriptionsService {
         }
     }
 
+
+
     async getOwnSubscription(current_user: { id: number, role: Role }) {
         const existUser = await this.prisma.users.findUnique({
             where: {
@@ -35,8 +37,10 @@ export class UserSubscriptionsService {
                 status: Status.active
             },
             select: {
+                id: true,
                 status: true,
                 start_date: true,
+                auto_renew: true,
                 end_date: true,
                 plans: {
                     select: {
@@ -52,13 +56,17 @@ export class UserSubscriptionsService {
         return {
             success: true,
             data: existSubscription.map(item => ({
+                id: item.id,
                 status: item.status,
+                auto_renew: item.auto_renew,
                 start_date: item.start_date.toISOString().split('T')[0],
                 end_date: item.end_date.toISOString().split('T')[0],
                 plan: item.plans
             }))
         }
     }
+
+
 
 
     async createUserSubscription(payload: UserSubscriptionsDto) {
@@ -97,8 +105,8 @@ export class UserSubscriptionsService {
         }
     }
 
-    async updateUserSubscription(id: number, payload: UpdateUserSubscriptionsDto, current_user: { id: number, role: Role }) {
-        const existUserSubscription = await this.prisma.user_subscriptions.findUnique({
+    async updateUserSubscription(id: number, payload: UpdateUserSubscriptionDto, current_user: { id: number, role: Role }) {
+        const existUserSubscription = await this.prisma.user_subscriptions.findFirst({
             where: {
                 id,
                 user_id: current_user.id,
@@ -108,38 +116,11 @@ export class UserSubscriptionsService {
 
         if (!existUserSubscription) throw new NotFoundException("User subscription not found")
 
-        if (payload.user_id) {
-            const existUser = await this.prisma.users.findUnique({
-                where: {
-                    id: payload.user_id,
-                    status: Status.active
-                }
-            })
-            if (!existUser) throw new NotFoundException("User not found")
-        }
-        let end_date = existUserSubscription.end_date
-
-        if (payload.plan_id) {
-            const existSubscription = await this.prisma.subscription_plans.findUnique({
-                where: {
-                    id,
-                    status: Status.active
-                }
-            })
-            if (!existSubscription) throw new NotFoundException("Subscription not found")
-            const start_date = existUserSubscription.start_date
-            end_date = new Date(start_date)
-            end_date.setDate(end_date.getDate() + existSubscription.duration_days)
-        }
-        if (current_user.role !== Role.Superadmin && existUserSubscription.user_id !== current_user.id) {
-            throw new ForbiddenException("You don't have permission to update this subscription")
-        }
-
         await this.prisma.user_subscriptions.update({
             where: { id },
             data: {
                 ...payload,
-                end_date
+
             }
         })
         return {

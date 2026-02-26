@@ -70,6 +70,22 @@ export class WatchHistoryService {
             where: {
                 user_id: userId,
                 status: Status.active
+            }, select: {
+                watched_duration: true,
+                watched_percentage: true,
+                last_watched: true,
+                users: {
+                    select: {
+                        username: true,
+                    }
+                },
+                movies: {
+                    select: {
+                        title: true,
+                        rating: true,
+                        release_year: true
+                    }
+                }
             }
         })
         return {

@@ -40,9 +40,11 @@ export class CategoriesService {
                 slug: categorySlug
             }
         })
+
         if (exists) {
             throw new ConflictException("Category already exists")
         }
+
         await this.prisma.categories.create({
             data: {
                 ...payload,
@@ -90,7 +92,7 @@ export class CategoriesService {
 
 
     async deleteCategory(id: number) {
-        const existCategory = await this.prisma.categories.findUnique({
+        const existCategory = await this.prisma.categories.findFirst({
             where: {
                 id,
                 status: Status.active

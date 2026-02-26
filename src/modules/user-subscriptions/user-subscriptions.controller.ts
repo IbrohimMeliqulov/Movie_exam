@@ -5,7 +5,7 @@ import { Role } from '@prisma/client';
 import { AuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/role.decorator';
-import { UpdateUserSubscriptionsDto, UserSubscriptionsDto } from './dto/create.dto';
+import { UpdateUserSubscriptionDto, UserSubscriptionsDto } from './dto/create.dto';
 
 @ApiBearerAuth()
 @Controller('user-subscriptions')
@@ -58,7 +58,7 @@ export class UserSubscriptionsController {
     @Put(":id")
     updateUserSubscription(
         @Param("id", ParseIntPipe) id: number,
-        @Body() payload: UpdateUserSubscriptionsDto,
+        @Body() payload: UpdateUserSubscriptionDto,
         @Req() req: Request
     ) {
         return this.userSubscriptions.updateUserSubscription(id, payload, req["user"])

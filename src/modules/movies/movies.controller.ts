@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -88,6 +88,7 @@ export class MoviesController {
         @UploadedFile() file: Express.Multer.File,
         @Req() req: Request
     ) {
+        if (!file) throw new BadRequestException("Poster must be added")
         return this.moviesService.createMovie(payload, file.filename, req['user'])
     }
 
